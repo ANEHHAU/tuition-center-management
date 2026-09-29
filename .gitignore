@@ -43,3 +43,9 @@ Thumbs.db
 .env
 application-local.properties
 application-local.yml
+
+
+# Cloudinary & secrets
+src/main/resources/application-secret.yml
+src/main/resources/application-local.yml
+

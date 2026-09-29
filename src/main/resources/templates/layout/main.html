@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security" th:fragment="layout(content)">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title th:text="${title} ?: 'Tuition Center Management'">Tuition Center Management</title>
+  
+  <!-- Tailwind CSS via CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Custom CSS -->
+  <link rel="stylesheet" th:href="@{/css/style.css}">
+  
+  <!-- Core JavaScript Libraries -->
+  <script th:src="@{/js/api.js}"></script>
+  <script th:src="@{/js/auth.js}"></script>
+  <script th:src="@{/js/layout.js}"></script>
+</head>
+<body class="bg-gray-100 text-gray-800 antialiased min-h-screen flex flex-col">
+
+  <div class="flex flex-1 min-h-screen relative overflow-x-hidden">
+    <!-- Overlay làm mờ màn hình khi mở Sidebar trên Mobile -->
+    <div id="sidebar-overlay" class="fixed inset-0 bg-black/50 z-20 hidden md:hidden"></div>
+
+    <!-- Sidebar Fragment -->
+    <div th:replace="~{layout/sidebar :: sidebar}"></div>
+
+    <!-- Khung nội dung chính -->
+    <div class="flex-1 flex flex-col min-w-0">
+      <!-- Header Fragment -->
+      <div th:replace="~{layout/header :: header}"></div>
+
+      <!-- Main Page Content -->
+      <main class="flex-1 p-4 md:p-6 max-w-7xl w-full mx-auto">
+        <div th:replace="${content}"></div>
+      </main>
+
+      <!-- Footer Fragment -->
+      <div th:replace="~{layout/footer :: footer}"></div>
+    </div>
+  </div>
+
+</body>
+</html>

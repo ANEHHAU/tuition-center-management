@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{layout/main :: layout(~{::main})}">
+<body>
+
+  <main class="space-y-6">
+    <div class="flex items-center justify-between">
+      <div>
+        <h2 class="text-2xl font-bold text-gray-800">Trang chủ Giáo viên (TEACHER)</h2>
+        <p class="text-sm text-gray-500">Quản lý lịch dạy và danh sách lớp học của bạn.</p>
+      </div>
+      <span class="px-3 py-1 bg-green-100 text-green-800 font-semibold text-xs rounded-full">TEACHER</span>
+    </div>
+
+    <!-- Stat Cards -->
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      <div class="bg-white p-5 rounded-xl border border-gray-200 shadow-sm">
+        <p class="text-xs font-semibold text-gray-500 uppercase">Lớp phụ trách</p>
+        <h3 class="text-2xl font-bold text-gray-800 mt-1">4 Lớp</h3>
+      </div>
+      <div class="bg-white p-5 rounded-xl border border-gray-200 shadow-sm">
+        <p class="text-xs font-semibold text-gray-500 uppercase">Tổng học sinh</p>
+        <h3 class="text-2xl font-bold text-gray-800 mt-1">65 Học sinh</h3>
+      </div>
+      <div class="bg-white p-5 rounded-xl border border-gray-200 shadow-sm">
+        <p class="text-xs font-semibold text-gray-500 uppercase">Lịch dạy tuần này</p>
+        <h3 class="text-2xl font-bold text-gray-800 mt-1">12 Buổi</h3>
+      </div>
+    </div>
+
+    <div class="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
+      <h3 class="text-lg font-bold text-gray-800 mb-3">Lịch dạy sắp tới</h3>
+      <p class="text-sm text-gray-600">Không có lớp học nào trong 2 giờ tới.</p>
+    </div>
+
+    <script>
+      document.addEventListener("DOMContentLoaded", function() {
+        window.authService.requireAuth(['TEACHER']);
+      });
+    </script>
+  </main>
+
+</body>
+</html>

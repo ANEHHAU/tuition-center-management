@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{layout/main :: layout(~{::main})}">
+<body>
+
+  <main class="space-y-6">
+    
+    <!-- Title Page -->
+    <div class="flex items-center justify-between">
+      <h2 class="text-2xl font-bold text-gray-800">Thông tin cá nhân</h2>
+    </div>
+
+    <!-- Layout 2 cột: Thẻ Avatar (Trái) & Form Cập nhật (Phải) -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      
+      <!-- Cột Trái: Thông tin Avatar & Badge -->
+      <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200 flex flex-col items-center text-center">
+        <div class="relative w-32 h-32 mb-4">
+          <img id="profile-avatar-img" th:src="@{/images/default-avatar.svg}" alt="Avatar"
+               class="w-32 h-32 rounded-full object-cover border-2 border-blue-500 shadow-sm">
+          <label for="avatar-file-input" 
+                 class="absolute bottom-0 right-0 bg-blue-600 hover:bg-blue-700 text-white p-2 rounded-full shadow cursor-pointer transition">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/>
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/>
+            </svg>
+          </label>
+          <input type="file" id="avatar-file-input" accept="image/*" class="hidden">
+        </div>
+
+        <h3 id="profile-fullname-display" class="text-lg font-bold text-gray-900">Loading...</h3>
+        <p id="profile-username" class="text-sm text-gray-500 mb-2">@username</p>
+        
+        <span id="profile-role" class="px-3 py-1 bg-blue-100 text-blue-800 text-xs font-semibold rounded-full uppercase">
+          ROLE
+        </span>
+      </div>
+
+      <!-- Cột Phải: Form Cập nhật Hồ sơ & Đổi Mật Khẩu -->
+      <div class="lg:col-span-2 space-y-6">
+        
+        <!-- Box 1: Cập nhật Thông tin -->
+        <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+          <h4 class="text-lg font-semibold text-gray-800 mb-4 pb-2 border-b border-gray-100">Chi tiết Hồ sơ</h4>
+          
+          <div id="profile-success-msg" class="hidden mb-4 p-3 bg-green-50 border border-green-200 text-green-700 text-sm rounded-lg"></div>
+          <div id="profile-error-msg" class="hidden mb-4 p-3 bg-red-50 border border-red-200 text-red-600 text-sm rounded-lg"></div>
+
+          <form id="profile-form" class="space-y-4">
+            <input type="hidden" id="avatarUrl">
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label for="fullName" class="block text-sm font-medium text-gray-700 mb-1">Họ và tên</label>
+                <input type="text" id="fullName" class="w-full px-3 py-2 border border-gray-300 rounded-lg outline-none text-sm focus:ring-2 focus:ring-blue-500">
+              </div>
+              <div>
+                <label for="email" class="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                <input type="email" id="email" class="w-full px-3 py-2 border border-gray-300 rounded-lg outline-none text-sm focus:ring-2 focus:ring-blue-500">
+              </div>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label for="phone" class="block text-sm font-medium text-gray-700 mb-1">Số điện thoại</label>
+                <input type="text" id="phone" class="w-full px-3 py-2 border border-gray-300 rounded-lg outline-none text-sm focus:ring-2 focus:ring-blue-500">
+              </div>
+              <div>
+                <label for="address" class="block text-sm font-medium text-gray-700 mb-1">Địa chỉ</label>
+                <input type="text" id="address" class="w-full px-3 py-2 border border-gray-300 rounded-lg outline-none text-sm focus:ring-2 focus:ring-blue-500">
+              </div>
+            </div>
+
+            <div>
+              <label for="note" class="block text-sm font-medium text-gray-700 mb-1">Ghi chú</label>
+              <textarea id="note" rows="2" class="w-full px-3 py-2 border border-gray-300 rounded-lg outline-none text-sm focus:ring-2 focus:ring-blue-500"></textarea>
+            </div>
+
+            <div class="pt-2">
+              <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-medium px-5 py-2 rounded-lg text-sm transition">
+                Lưu thay đổi
+              </button>
+            </div>
+          </form>
+        </div>
+
+        <!-- Box 2: Đổi Mật Khẩu -->
+        <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+          <h4 class="text-lg font-semibold text-gray-800 mb-4 pb-2 border-b border-gray-100">Đổi mật khẩu</h4>
+          
+          <div id="password-success-msg" class="hidden mb-4 p-3 bg-green-50 border border-green-200 text-green-700 text-sm rounded-lg"></div>
+          <div id="password-error-msg" class="hidden mb-4 p-3 bg-red-50 border border-red-200 text-red-600 text-sm rounded-lg"></div>
+
+          <form id="password-form" class="space-y-4">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label for="oldPassword" class="block text-sm font-medium text-gray-700 mb-1">Mật khẩu hiện tại *</label>
+                <input type="password" id="oldPassword" required class="w-full px-3 py-2 border border-gray-300 rounded-lg outline-none text-sm focus:ring-2 focus:ring-blue-500">
+              </div>
+              <div>
+                <label for="newPassword" class="block text-sm font-medium text-gray-700 mb-1">Mật khẩu mới * (min 6)</label>
+                <input type="password" id="newPassword" required minlength="6" class="w-full px-3 py-2 border border-gray-300 rounded-lg outline-none text-sm focus:ring-2 focus:ring-blue-500">
+              </div>
+            </div>
+
+            <div class="pt-2">
+              <button type="submit" class="bg-gray-800 hover:bg-gray-900 text-white font-medium px-5 py-2 rounded-lg text-sm transition">
+                Cập nhật mật khẩu
+              </button>
+            </div>
+          </form>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Script Profile -->
+    <script th:src="@{/js/profile.js}"></script>
+    <script>
+      document.addEventListener("DOMContentLoaded", function() {
+        window.authService.requireAuth();
+      });
+    </script>
+  </main>
+
+</body>
+</html>

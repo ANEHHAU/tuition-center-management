@@ -1,0 +1,42 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: tuition-center-management
+  config:
+    import: optional:classpath:application-secret.yml
+
+  datasource:
+    url: jdbc:mysql://localhost:3306/TuitionCenterManagementApplicationDatabase?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+    username: root
+    password: ${DB_PASSWORD:123456}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+
+  servlet:
+    multipart:
+      max-file-size: 2MB
+      max-request-size: 2MB
+
+jwt:
+  secret: 9a8f7e6d5c4b3a210987654321fedcba9a8f7e6d5c4b3a210987654321fedcba
+  expiration: 86400000 # 24 giờ (ms)
+
+app:
+  upload:
+    dir: uploads
+
+cloudinary:
+  cloud-name: ${CLOUDINARY_CLOUD_NAME:demo}
+  api-key: ${CLOUDINARY_API_KEY:123456789}
+  api-secret: ${CLOUDINARY_API_SECRET:secret}
+  url: ${CLOUDINARY_URL:}
+
