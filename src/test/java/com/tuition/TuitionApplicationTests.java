@@ -269,6 +269,9 @@ public class TuitionApplicationTests {
     private com.tuition.repository.GroupRepository groupRepository;
 
     @Autowired
+    private com.tuition.repository.CourseRepository courseRepository;
+
+    @Autowired
     private com.tuition.service.PublicLinkService publicLinkService;
 
     @Test
@@ -284,12 +287,23 @@ public class TuitionApplicationTests {
                 .andExpect(jsonPath("$.message", containsString("không phải là")));
     }
 
+    private com.tuition.entity.Course createDummyCourse(String name) {
+        User teacher = userRepository.findByUsername("admin").orElseThrow();
+        return courseRepository.save(com.tuition.entity.Course.builder()
+                .name(name)
+                .pricePerSession(new java.math.BigDecimal("100000"))
+                .teacher(teacher)
+                .build());
+    }
+
     @Test
     @DisplayName("Test 16: Public schedule token creation & view -> 200, NO price in HTML")
     void test16_publicScheduleSuccess() throws Exception {
+        com.tuition.entity.Course course = createDummyCourse("Toán Nâng Cao");
         com.tuition.entity.Group group = groupRepository.save(com.tuition.entity.Group.builder()
                 .name("Nhóm Toán 10A")
-                .courseName("Toán Nâng Cao")
+                .course(course)
+                .teacher(course.getTeacher())
                 .build());
 
         String token = publicLinkService.generateToken(group);
@@ -305,9 +319,11 @@ public class TuitionApplicationTests {
     @Test
     @DisplayName("Test 17: Revoked public token -> 400 Error")
     void test17_revokedPublicScheduleToken() throws Exception {
+        com.tuition.entity.Course course = createDummyCourse("Vật Lý 11");
         com.tuition.entity.Group group = groupRepository.save(com.tuition.entity.Group.builder()
                 .name("Nhóm Lý 11B")
-                .courseName("Vật Lý 11")
+                .course(course)
+                .teacher(course.getTeacher())
                 .build());
 
         String token = publicLinkService.generateToken(group);
@@ -321,9 +337,11 @@ public class TuitionApplicationTests {
     @Test
     @DisplayName("Test 18: Expired public token -> 400 Error")
     void test18_expiredPublicScheduleToken() throws Exception {
+        com.tuition.entity.Course course = createDummyCourse("Hóa Học 12");
         com.tuition.entity.Group group = groupRepository.save(com.tuition.entity.Group.builder()
                 .name("Nhóm Hóa 12C")
-                .courseName("Hóa Học 12")
+                .course(course)
+                .teacher(course.getTeacher())
                 .build());
 
         String token = publicLinkService.generateToken(group);

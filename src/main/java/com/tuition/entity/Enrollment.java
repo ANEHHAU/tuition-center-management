@@ -7,49 +7,40 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "study_groups")
+@Table(
+    name = "enrollments",
+    uniqueConstraints = {
+        @UniqueConstraint(columnNames = {"student_id", "group_id", "join_date"})
+    }
+)
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class Group {
+public class Enrollment {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false, length = 100)
-    private String name;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "student_id", nullable = false)
+    private User student;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "course_id", nullable = false)
-    private Course course;
+    @JoinColumn(name = "group_id", nullable = false)
+    private Group group;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "teacher_id", nullable = false)
-    private User teacher;
+    @Column(name = "join_date", nullable = false)
+    private LocalDate joinDate;
 
-    @Column(name = "start_date")
-    private LocalDate startDate;
-
-    @Column(name = "end_date")
-    private LocalDate endDate;
+    @Column(name = "leave_date")
+    private LocalDate leaveDate;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
-    private GroupStatus status;
-
-    @Column(unique = true, length = 64)
-    private String publicToken;
-
-    @Builder.Default
-    @Column(nullable = false)
-    private Boolean tokenEnabled = true;
-
-    private LocalDateTime tokenExpiresAt;
-
-    private LocalDateTime tokenCreatedAt;
+    private EnrollmentStatus status;
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
@@ -62,10 +53,7 @@ public class Group {
         this.createdAt = LocalDateTime.now();
         this.updatedAt = LocalDateTime.now();
         if (this.status == null) {
-            this.status = GroupStatus.ACTIVE;
-        }
-        if (this.tokenEnabled == null) {
-            this.tokenEnabled = true;
+            this.status = EnrollmentStatus.ACTIVE;
         }
     }
 

@@ -3,53 +3,44 @@ package com.tuition.entity;
 import jakarta.persistence.*;
 import lombok.*;
 
-import java.time.LocalDate;
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "study_groups")
+@Table(name = "courses")
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class Group {
+public class Course {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false, length = 100)
+    @Column(nullable = false, length = 150)
     private String name;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "course_id", nullable = false)
-    private Course course;
+    @Column(name = "price_per_session", nullable = false, precision = 12, scale = 2)
+    private BigDecimal pricePerSession;
+
+    @Column(columnDefinition = "TEXT")
+    private String description;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "teacher_id", nullable = false)
     private User teacher;
 
-    @Column(name = "start_date")
-    private LocalDate startDate;
+    @Column(name = "cover_url", length = 500)
+    private String coverUrl;
 
-    @Column(name = "end_date")
-    private LocalDate endDate;
+    @Column(name = "cover_public_id", length = 255)
+    private String coverPublicId;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
-    private GroupStatus status;
-
-    @Column(unique = true, length = 64)
-    private String publicToken;
-
-    @Builder.Default
-    @Column(nullable = false)
-    private Boolean tokenEnabled = true;
-
-    private LocalDateTime tokenExpiresAt;
-
-    private LocalDateTime tokenCreatedAt;
+    private CourseStatus status;
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
@@ -62,10 +53,7 @@ public class Group {
         this.createdAt = LocalDateTime.now();
         this.updatedAt = LocalDateTime.now();
         if (this.status == null) {
-            this.status = GroupStatus.ACTIVE;
-        }
-        if (this.tokenEnabled == null) {
-            this.tokenEnabled = true;
+            this.status = CourseStatus.ACTIVE;
         }
     }
 

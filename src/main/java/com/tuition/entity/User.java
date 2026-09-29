@@ -59,6 +59,9 @@ public class User {
     @Column(nullable = false)
     private LocalDateTime updatedAt;
 
+    @Column(name = "created_by_id")
+    private Long createdById;
+
     @PrePersist
     protected void onCreate() {
         this.createdAt = LocalDateTime.now();

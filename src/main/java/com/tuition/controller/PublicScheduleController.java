@@ -64,7 +64,7 @@ public class PublicScheduleController {
 
         // 4. Chuẩn bị dữ liệu hiển thị (CHỈ BAO GỒM LỊCH HỌC - KHÔNG CÓ GIÁ TIỀN hay DS HỌC SINH)
         model.addAttribute("groupName", group.getName());
-        model.addAttribute("courseName", group.getCourseName());
+        model.addAttribute("courseName", group.getCourse().getName());
 
         // Danh sách buổi học mẫu cho nhóm
         List<Map<String, String>> sessions = List.of(
