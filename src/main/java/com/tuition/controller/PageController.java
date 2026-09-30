@@ -28,12 +28,7 @@ public class PageController {
 
     @GetMapping("/admin")
     public String adminHome() {
-        return "admin/home";
-    }
-
-    @GetMapping("/teacher")
-    public String teacherHome() {
-        return "teacher/home";
+        return "redirect:/admin/users";
     }
 
     @GetMapping("/student")

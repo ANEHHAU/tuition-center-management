@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{layout/main :: layout(~{::main})}">
+<body>
+  <main class="space-y-6">
+    <!-- Header -->
+    <div class="flex items-center space-x-4">
+      <a href="/teacher/students" class="text-gray-400 hover:text-gray-600">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+      </a>
+      <h2 class="text-2xl font-bold text-gray-800" id="studentTitle">Chi tiết Học sinh</h2>
+    </div>
+
+    <!-- Info Card -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+      <div class="flex flex-col md:flex-row items-start md:items-center space-y-4 md:space-y-0 md:space-x-6">
+        <div class="w-20 h-20 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 text-3xl font-bold" id="studentAvatar">U</div>
+        <div class="flex-1">
+          <h3 class="text-xl font-bold text-gray-800" id="studentName">-</h3>
+          <div class="mt-2 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 text-sm">
+            <div><span class="text-gray-500">Username:</span> <span id="studentUsername" class="font-medium">-</span></div>
+            <div><span class="text-gray-500">Email:</span> <span id="studentEmail" class="font-medium">-</span></div>
+            <div><span class="text-gray-500">SĐT:</span> <span id="studentPhone" class="font-medium">-</span></div>
+            <div><span class="text-gray-500">Trạng thái:</span> <span id="studentStatus" class="font-medium">-</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Sections -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <!-- Nhóm đang học -->
+      <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+        <div class="px-5 py-4 border-b border-gray-100 bg-gray-50">
+          <h3 class="font-bold text-gray-800">Nhóm đang học</h3>
+        </div>
+        <div class="divide-y divide-gray-100" id="studentGroups">
+          <p class="p-4 text-gray-500 text-center">Đang tải...</p>
+        </div>
+      </div>
+
+      <!-- Lịch sử điểm danh -->
+      <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+        <div class="px-5 py-4 border-b border-gray-100 bg-gray-50">
+          <h3 class="font-bold text-gray-800">Lịch sử điểm danh (30 ngày gần nhất)</h3>
+        </div>
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-sm">
+            <thead>
+              <tr class="text-gray-500 text-xs uppercase border-b bg-gray-50">
+                <th class="px-4 py-2">Ngày</th>
+                <th class="px-4 py-2">Nhóm</th>
+                <th class="px-4 py-2">Trạng thái</th>
+                <th class="px-4 py-2">Ghi chú</th>
+              </tr>
+            </thead>
+            <tbody id="attendanceHistory" class="divide-y divide-gray-100"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Hóa đơn & Công nợ -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+      <div class="px-5 py-4 border-b border-gray-100 bg-gray-50 flex items-center justify-between">
+        <h3 class="font-bold text-gray-800">Hóa đơn & Công nợ</h3>
+        <span class="text-sm font-semibold text-red-600" id="totalDebt">Tổng nợ: 0 đ</span>
+      </div>
+      <div class="overflow-x-auto">
+        <table class="w-full text-left text-sm">
+          <thead>
+            <tr class="text-gray-500 text-xs uppercase border-b bg-gray-50">
+              <th class="px-4 py-2">Tháng</th>
+              <th class="px-4 py-2">Tổng tiền</th>
+              <th class="px-4 py-2">Đã trả</th>
+              <th class="px-4 py-2">Còn nợ</th>
+              <th class="px-4 py-2">Trạng thái</th>
+            </tr>
+          </thead>
+          <tbody id="invoiceHistory" class="divide-y divide-gray-100"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <script>
+    const StudentDetailManager = {
+        studentId: null,
+
+        init() {
+            const params = new URLSearchParams(window.location.search);
+            this.studentId = params.get('id');
+            if (!this.studentId) { alert('Thiếu studentId'); return; }
+            this.loadInfo();
+            this.loadAttendance();
+        },
+
+        async loadInfo() {
+            try {
+                const s = await window.apiFetch('/api/teacher/students/' + this.studentId + '/detail');
+                document.getElementById('studentTitle').textContent = s.fullName;
+                document.getElementById('studentAvatar').textContent = s.fullName ? s.fullName.charAt(0) : 'U';
+                document.getElementById('studentName').textContent = s.fullName;
+                document.getElementById('studentUsername').textContent = s.username;
+                document.getElementById('studentEmail').textContent = s.email || '-';
+                document.getElementById('studentPhone').textContent = s.phone || '-';
+                document.getElementById('studentStatus').innerHTML = `<span class="px-2 py-1 text-xs font-semibold rounded-full ${s.status === 'ACTIVE' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}">${s.status}</span>`;
+
+                // Load groups of this student (we search through all teacher groups)
+                await this.loadGroups();
+                await this.loadInvoices();
+            } catch (e) { alert(e.message); }
+        },
+
+        async loadGroups() {
+            try {
+                const groups = await window.apiFetch('/api/teacher/groups?size=100');
+                const container = document.getElementById('studentGroups');
+                const result = [];
+                
+                if (groups.content) {
+                    for (const g of groups.content) {
+                        try {
+                            const enrollments = await window.apiFetch('/api/teacher/groups/' + g.id + '/students');
+                            if (enrollments.some(e => e.studentId == this.studentId)) {
+                                result.push(g);
+                            }
+                        } catch (e) { /* skip */ }
+                    }
+                }
+
+                if (result.length === 0) {
+                    container.innerHTML = '<p class="p-4 text-gray-500 text-center">Chưa tham gia nhóm nào</p>';
+                    return;
+                }
+                container.innerHTML = result.map(g => `
+                    <div class="flex items-center justify-between p-4 hover:bg-gray-50">
+                        <div>
+                            <div class="font-medium text-gray-800">${g.name}</div>
+                            <div class="text-xs text-gray-500">${g.courseName}</div>
+                        </div>
+                        <a href="/teacher/group-detail?id=${g.id}" class="text-blue-600 text-sm hover:underline">Xem nhóm</a>
+                    </div>
+                `).join('');
+            } catch (e) { console.error(e); }
+        },
+
+        async loadAttendance() {
+            try {
+                const now = new Date();
+                const from = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+                const to = now.toISOString().split('T')[0];
+                const items = await window.apiFetch('/api/teacher/attendance/student/' + this.studentId + '?from=' + from + '&to=' + to);
+                const tbody = document.getElementById('attendanceHistory');
+                
+                if (!items || items.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="4" class="text-center py-4 text-gray-500">Chưa có dữ liệu</td></tr>';
+                    return;
+                }
+                tbody.innerHTML = items.map(a => {
+                    let cls = a.status === 'PRESENT' ? 'text-green-600' : a.status === 'ABSENT' ? 'text-red-600' : 'text-yellow-600';
+                    return `
+                    <tr class="hover:bg-gray-50">
+                        <td class="px-4 py-2">${a.sessionDate || '-'}</td>
+                        <td class="px-4 py-2">${a.groupName || '-'}</td>
+                        <td class="px-4 py-2 font-semibold ${cls}">${a.status}</td>
+                        <td class="px-4 py-2 text-gray-600">${a.note || '-'}</td>
+                    </tr>`;
+                }).join('');
+            } catch (e) { console.error(e); }
+        },
+
+        async loadInvoices() {
+            try {
+                // Load all invoices from teacher, filter by this student
+                const now = new Date();
+                const res = await window.apiFetch('/api/teacher/invoices?size=100');
+                const tbody = document.getElementById('invoiceHistory');
+                
+                if (!res.content || res.content.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="5" class="text-center py-4 text-gray-500">Chưa có hóa đơn</td></tr>';
+                    return;
+                }
+
+                // Filter invoices for this student
+                const studentInvoices = res.content.filter(i => i.studentId == this.studentId);
+                
+                let totalDebt = 0;
+                if (studentInvoices.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="5" class="text-center py-4 text-gray-500">Chưa có hóa đơn</td></tr>';
+                    return;
+                }
+
+                tbody.innerHTML = studentInvoices.map(i => {
+                    const remaining = i.totalAmount - i.paidAmount;
+                    if (remaining > 0) totalDebt += remaining;
+                    let cls = i.status === 'PAID' ? 'bg-green-100 text-green-800' : i.status === 'PARTIAL' ? 'bg-yellow-100 text-yellow-800' : 'bg-red-100 text-red-800';
+                    return `
+                    <tr class="hover:bg-gray-50">
+                        <td class="px-4 py-2 font-medium">${i.month}/${i.year}</td>
+                        <td class="px-4 py-2">${Number(i.totalAmount).toLocaleString('vi-VN')} đ</td>
+                        <td class="px-4 py-2 text-green-600">${Number(i.paidAmount).toLocaleString('vi-VN')} đ</td>
+                        <td class="px-4 py-2 text-red-600">${Number(remaining).toLocaleString('vi-VN')} đ</td>
+                        <td class="px-4 py-2"><span class="px-2 py-1 text-xs font-semibold rounded-full ${cls}">${i.status}</span></td>
+                    </tr>`;
+                }).join('');
+                
+                document.getElementById('totalDebt').textContent = 'Tổng nợ: ' + Number(totalDebt).toLocaleString('vi-VN') + ' đ';
+            } catch (e) { console.error(e); }
+        }
+    };
+
+    document.addEventListener("DOMContentLoaded", function() {
+        window.authService.requireAuth(['TEACHER']);
+        StudentDetailManager.init();
+    });
+    </script>
+  </main>
+</body>
+</html>

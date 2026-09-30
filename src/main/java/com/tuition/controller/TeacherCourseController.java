@@ -1,10 +1,13 @@
 package com.tuition.controller;
 
+import com.tuition.dto.BaseSearchRequest;
 import com.tuition.dto.CourseRequest;
 import com.tuition.dto.CourseResponse;
+import com.tuition.dto.PageResponse;
 import com.tuition.entity.User;
 import com.tuition.repository.UserRepository;
 import com.tuition.service.CourseService;
+import com.tuition.service.TeacherService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -13,14 +16,14 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
-
 @RestController
 @RequestMapping("/api/teacher/courses")
 @RequiredArgsConstructor
+@PreAuthorize("hasRole('TEACHER')")
 public class TeacherCourseController {
 
     private final CourseService courseService;
+    private final TeacherService teacherService;
     private final UserRepository userRepository;
 
     private User getCurrentUser(UserDetails userDetails) {
@@ -28,8 +31,11 @@ public class TeacherCourseController {
     }
 
     @GetMapping
-    public List<CourseResponse> getMyCourses(@AuthenticationPrincipal UserDetails userDetails) {
-        return courseService.listByCurrentUser(getCurrentUser(userDetails));
+    public PageResponse<CourseResponse> getMyCourses(
+            @ModelAttribute BaseSearchRequest req,
+            @RequestParam(required = false) String status,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        return teacherService.searchCourses(getCurrentUser(userDetails), req.getKeyword(), status, req.getPage(), req.getSize(), req.getSortBy(), req.getSortDir());
     }
 
     @GetMapping("/{id}")

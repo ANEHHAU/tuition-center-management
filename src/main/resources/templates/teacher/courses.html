@@ -4,36 +4,53 @@
   <main class="space-y-6">
     <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center space-y-4 sm:space-y-0">
       <h2 class="text-2xl font-bold text-gray-800">Quản lý Khóa học</h2>
-      <a href="course-form" class="px-4 py-2 bg-blue-600 text-white rounded shadow hover:bg-blue-700">Tạo khóa học mới</a>
+      <a href="/teacher/course-form" class="px-4 py-2 bg-blue-600 text-white rounded-lg shadow hover:bg-blue-700 transition flex items-center space-x-2">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+        <span>Tạo khóa học</span>
+      </a>
     </div>
 
-    <div id="error-msg" class="text-red-600 text-sm"></div>
+    <!-- Search & Filter -->
+    <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div th:replace="~{layout/fragments/search-bar :: searchBar('Tên hoặc mô tả khóa học...')}"></div>
+      
+      <div class="flex items-center space-x-3">
+        <select id="filterStatus" class="border-gray-300 rounded-md shadow-sm text-sm focus:ring-blue-500 focus:border-blue-500" onchange="ListHelper.setFilter('status', this.value)">
+          <option value="">Tất cả trạng thái</option>
+          <option value="ACTIVE">Hoạt động</option>
+          <option value="INACTIVE">Đã ẩn</option>
+        </select>
+      </div>
+    </div>
 
+    <!-- Table -->
     <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
       <div class="overflow-x-auto">
         <table class="w-full text-left border-collapse">
           <thead>
-            <tr class="bg-gray-100 text-gray-600 text-sm uppercase tracking-wider border-b">
-              <th class="px-4 py-3 font-medium">ID</th>
-              <th class="px-4 py-3 font-medium">Tên Khóa Học</th>
-              <th class="px-4 py-3 font-medium">Học phí / Buổi</th>
+            <tr class="bg-gray-50 text-gray-600 text-sm uppercase tracking-wider border-b">
+              <th th:replace="~{layout/fragments/sort-header :: sortHeader('Tên Khóa Học', 'name')}"></th>
+              <th th:replace="~{layout/fragments/sort-header :: sortHeader('Học phí / Buổi', 'price')}"></th>
+              <th class="px-4 py-3 font-medium">Số Nhóm</th>
               <th class="px-4 py-3 font-medium">Trạng thái</th>
-              <th class="px-4 py-3 font-medium">Số Lớp</th>
-              <th class="px-4 py-3 font-medium">Hành động</th>
+              <th class="px-4 py-3 font-medium text-right">Hành động</th>
             </tr>
           </thead>
-          <tbody id="courses-tbody">
+          <tbody id="tableBody">
             <!-- Render by JS -->
           </tbody>
         </table>
       </div>
+      
+      <!-- Pagination -->
+      <div th:replace="~{layout/fragments/pagination :: pagination}"></div>
     </div>
 
-    <script th:src="@{/js/course.js}"></script>
+    <script th:src="@{/js/teacher/course.js}"></script>
     <script>
       document.addEventListener("DOMContentLoaded", function() {
         window.authService.requireAuth(['TEACHER']);
-        CourseManager.init('TEACHER');
+        CourseManager.init();
       });
     </script>
   </main>

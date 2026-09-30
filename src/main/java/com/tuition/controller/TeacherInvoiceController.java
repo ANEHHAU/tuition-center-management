@@ -5,25 +5,26 @@ import com.tuition.entity.User;
 import com.tuition.repository.UserRepository;
 import com.tuition.service.InvoiceService;
 import com.tuition.service.PaymentService;
-import com.tuition.service.ReportService;
+import com.tuition.service.TeacherService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
-import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/teacher/invoices")
 @RequiredArgsConstructor
+@PreAuthorize("hasRole('TEACHER')")
 public class TeacherInvoiceController {
 
     private final InvoiceService invoiceService;
     private final PaymentService paymentService;
-    private final ReportService reportService;
+    private final TeacherService teacherService;
     private final UserRepository userRepository;
 
     private User getCurrentUser(UserDetails userDetails) {
@@ -31,12 +32,13 @@ public class TeacherInvoiceController {
     }
 
     @GetMapping
-    public List<InvoiceResponse> getInvoices(
-            @RequestParam Integer month,
-            @RequestParam Integer year,
+    public PageResponse<InvoiceResponse> getInvoices(
+            @ModelAttribute BaseSearchRequest req,
+            @RequestParam(required = false) Integer month,
+            @RequestParam(required = false) Integer year,
+            @RequestParam(required = false) String status,
             @AuthenticationPrincipal UserDetails userDetails) {
-        User currentUser = getCurrentUser(userDetails);
-        return invoiceService.listByTeacherAndMonth(currentUser.getId(), month, year);
+        return teacherService.searchInvoices(getCurrentUser(userDetails), month, year, status, req.getKeyword(), req.getPage(), req.getSize(), req.getSortBy(), req.getSortDir());
     }
 
     @PostMapping("/generate")
@@ -44,6 +46,7 @@ public class TeacherInvoiceController {
             @RequestBody @Valid GenerateInvoiceRequest req,
             @AuthenticationPrincipal UserDetails userDetails) {
         User currentUser = getCurrentUser(userDetails);
+        // Note: the original service did not have studentIds array. Just generate for all if null/empty
         return invoiceService.generateForTeacher(currentUser.getId(), req.month(), req.year(), currentUser);
     }
 
@@ -57,23 +60,23 @@ public class TeacherInvoiceController {
         return invoiceService.regenerate(id, getCurrentUser(userDetails));
     }
 
-    @PostMapping("/payments")
+    @PostMapping("/{id}/payments")
     public PaymentResponse recordPayment(
+            @PathVariable Long id,
+            @RequestBody @Valid PaymentRequest req,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        return paymentService.record(req, getCurrentUser(userDetails));
+    }
+    
+    @PostMapping("/payments")
+    public PaymentResponse recordPaymentNoId(
             @RequestBody @Valid PaymentRequest req,
             @AuthenticationPrincipal UserDetails userDetails) {
         return paymentService.record(req, getCurrentUser(userDetails));
     }
 
-    @GetMapping("/reports/revenue")
-    public RevenueReportResponse getRevenueReport(
-            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime from,
-            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime to,
-            @AuthenticationPrincipal UserDetails userDetails) {
-        return reportService.revenueByTeacher(getCurrentUser(userDetails).getId(), from, to);
-    }
-
-    @GetMapping("/reports/debt")
-    public List<DebtReportResponse> getDebtReport(@AuthenticationPrincipal UserDetails userDetails) {
-        return reportService.debtReport(getCurrentUser(userDetails).getId());
+    @GetMapping("/{id}")
+    public InvoiceResponse getInvoiceDetail(@PathVariable Long id, @AuthenticationPrincipal UserDetails userDetails) {
+        return invoiceService.getById(id, getCurrentUser(userDetails));
     }
 }

@@ -3,85 +3,130 @@
 <body>
   <main class="space-y-6">
     <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center space-y-4 sm:space-y-0">
-      <h2 class="text-2xl font-bold text-gray-800">Quản lý Hóa đơn</h2>
-    </div>
-
-    <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-200">
-      <div class="grid grid-cols-1 sm:grid-cols-4 gap-4 items-end">
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">Tháng</label>
-          <input type="number" id="filter-month" min="1" max="12" class="w-full px-3 py-2 border rounded focus:ring-blue-500 focus:border-blue-500">
-        </div>
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">Năm</label>
-          <input type="number" id="filter-year" class="w-full px-3 py-2 border rounded focus:ring-blue-500 focus:border-blue-500">
-        </div>
-        <button id="btn-load-invoices" class="w-full px-4 py-2 bg-gray-800 text-white rounded hover:bg-gray-900">Xem Hóa đơn</button>
-        <button id="btn-gen-invoices" class="w-full px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">Tạo hóa đơn tháng</button>
+      <h2 class="text-2xl font-bold text-gray-800">Quản lý Hóa Đơn</h2>
+      <div class="flex space-x-3">
+        <button onclick="InvoiceManager.generateInvoices()" class="px-4 py-2 bg-blue-600 text-white rounded-lg shadow hover:bg-blue-700 transition flex items-center space-x-2">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+          <span>Tạo hóa đơn tháng</span>
+        </button>
       </div>
-      <p class="text-xs text-gray-500 mt-2">Tính năng "Tạo hóa đơn tháng" sẽ tự động tạo/cập nhật hóa đơn cho tất cả học sinh có dữ liệu điểm danh trong tháng đó.</p>
     </div>
 
-    <div id="error-msg" class="text-red-600 text-sm"></div>
+    <!-- Search & Filter -->
+    <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex flex-wrap gap-4 items-center justify-between">
+      <div th:replace="~{layout/fragments/search-bar :: searchBar('Tìm tên học sinh...')}"></div>
+      
+      <div class="flex items-center space-x-3 flex-wrap">
+        <select id="filterMonth" class="border-gray-300 rounded-md shadow-sm text-sm focus:ring-blue-500 focus:border-blue-500">
+          <option value="1">Tháng 1</option>
+          <option value="2">Tháng 2</option>
+          <option value="3">Tháng 3</option>
+          <option value="4">Tháng 4</option>
+          <option value="5">Tháng 5</option>
+          <option value="6">Tháng 6</option>
+          <option value="7">Tháng 7</option>
+          <option value="8">Tháng 8</option>
+          <option value="9">Tháng 9</option>
+          <option value="10">Tháng 10</option>
+          <option value="11">Tháng 11</option>
+          <option value="12">Tháng 12</option>
+        </select>
+        <input type="number" id="filterYear" class="w-24 border-gray-300 rounded-md text-sm p-2 shadow-sm" value="2026">
+        
+        <select id="filterStatus" class="border-gray-300 rounded-md shadow-sm text-sm focus:ring-blue-500 focus:border-blue-500" onchange="ListHelper.setFilter('status', this.value)">
+          <option value="">Tất cả trạng thái</option>
+          <option value="DRAFT">Bản nháp</option>
+          <option value="UNPAID">Chưa thanh toán</option>
+          <option value="PARTIAL">Thanh toán 1 phần</option>
+          <option value="PAID">Đã thanh toán</option>
+        </select>
+      </div>
+    </div>
 
+    <!-- Table -->
     <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
       <div class="overflow-x-auto">
         <table class="w-full text-left border-collapse">
           <thead>
-            <tr class="bg-gray-100 text-gray-600 text-sm uppercase tracking-wider border-b">
-              <th class="px-4 py-3 font-medium">ID</th>
-              <th class="px-4 py-3 font-medium">Học sinh</th>
-              <th class="px-4 py-3 font-medium">Kỳ</th>
-              <th class="px-4 py-3 font-medium">Tổng tiền</th>
-              <th class="px-4 py-3 font-medium">Đã trả</th>
+            <tr class="bg-gray-50 text-gray-600 text-sm uppercase tracking-wider border-b">
+              <th th:replace="~{layout/fragments/sort-header :: sortHeader('Học Sinh', 'name')}"></th>
+              <th class="px-4 py-3 font-medium">Tháng</th>
+              <th class="px-4 py-3 font-medium">Tổng Tiền</th>
+              <th class="px-4 py-3 font-medium">Đã Trả</th>
+              <th class="px-4 py-3 font-medium">Còn Nợ</th>
               <th class="px-4 py-3 font-medium">Trạng thái</th>
-              <th class="px-4 py-3 font-medium">Hành động</th>
+              <th class="px-4 py-3 font-medium text-right border-l border-gray-200">Hành động</th>
             </tr>
           </thead>
-          <tbody id="invoices-tbody">
+          <tbody id="tableBody">
             <!-- Render by JS -->
           </tbody>
         </table>
       </div>
+      
+      <!-- Pagination -->
+      <div th:replace="~{layout/fragments/pagination :: pagination}"></div>
     </div>
 
-    <script th:src="@{/js/invoice.js}"></script>
+    <!-- Modal Thanh Toán -->
+    <div id="paymentModal" class="hidden fixed inset-0 z-50 overflow-y-auto bg-black bg-opacity-50">
+        <div class="flex items-center justify-center min-h-screen px-4 py-10">
+            <div class="bg-white rounded-xl shadow-lg w-full max-w-md overflow-hidden">
+                <div class="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
+                    <h3 class="text-lg font-bold text-gray-900">Ghi Nhận Thanh Toán</h3>
+                    <button type="button" onclick="InvoiceManager.closePaymentModal()" class="text-gray-400 hover:text-gray-500">
+                        <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                        </svg>
+                    </button>
+                </div>
+                <form id="paymentForm" class="p-6 space-y-4" onsubmit="InvoiceManager.submitPayment(event)">
+                    <input type="hidden" name="invoiceId" id="paymentInvoiceId">
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Số tiền (VNĐ) *</label>
+                        <input type="number" name="amount" id="paymentAmount" required class="w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500">
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Phương thức *</label>
+                        <select name="method" required class="w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500">
+                            <option value="CASH">Tiền mặt</option>
+                            <option value="BANK_TRANSFER">Chuyển khoản</option>
+                            <option value="MOMO">Ví MoMo</option>
+                        </select>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Ngày thanh toán *</label>
+                        <input type="datetime-local" name="paidAt" id="paymentDate" required class="w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500">
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Ghi chú</label>
+                        <textarea name="note" rows="2" class="w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"></textarea>
+                    </div>
+                    
+                    <div class="pt-4 flex justify-end space-x-3">
+                        <button type="button" onclick="InvoiceManager.closePaymentModal()" class="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 transition">Hủy</button>
+                        <button type="submit" class="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition shadow-sm">Xác nhận</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script th:src="@{/js/teacher/invoice.js}"></script>
     <script>
       document.addEventListener("DOMContentLoaded", function() {
         window.authService.requireAuth(['TEACHER']);
-        InvoiceManager.init('TEACHER');
         
+        // Set default date for payment modal
         const now = new Date();
-        document.getElementById('filter-month').value = now.getMonth() + 1;
-        document.getElementById('filter-year').value = now.getFullYear();
-
-        document.getElementById('btn-load-invoices').onclick = () => {
-            InvoiceManager.loadInvoices(
-                document.getElementById('filter-month').value,
-                document.getElementById('filter-year').value
-            );
-        };
-
-        document.getElementById('btn-gen-invoices').onclick = () => {
-            // Fake form ids just to use the existing JS function easily
-            // Or better, write custom logic
-            const m = parseInt(document.getElementById('filter-month').value);
-            const y = parseInt(document.getElementById('filter-year').value);
-            if (!m || !y) return alert('Vui lòng nhập tháng năm');
-            
-            apiFetch('/api/teacher/invoices/generate', {
-                method: 'POST',
-                body: JSON.stringify({ month: m, year: y })
-            }).then(() => {
-                alert('Đã tạo/cập nhật hóa đơn thành công!');
-                InvoiceManager.loadInvoices(m, y);
-            }).catch(e => {
-                document.getElementById('error-msg').textContent = e.message;
-            });
-        };
-
-        // Initial load
-        document.getElementById('btn-load-invoices').click();
+        now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+        document.getElementById('paymentDate').value = now.toISOString().slice(0, 16);
+        
+        InvoiceManager.init();
       });
     </script>
   </main>

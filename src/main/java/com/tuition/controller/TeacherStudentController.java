@@ -1,55 +1,81 @@
 package com.tuition.controller;
 
+import com.tuition.dto.BaseSearchRequest;
+import com.tuition.dto.PageResponse;
 import com.tuition.dto.RegisterRequest;
+import com.tuition.dto.UpdateUserRequest;
 import com.tuition.dto.UserResponse;
-import com.tuition.entity.Role;
 import com.tuition.entity.User;
-import com.tuition.exception.BusinessException;
 import com.tuition.repository.UserRepository;
-import com.tuition.service.AuthService;
+import com.tuition.service.TeacherService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/teacher/students")
 @RequiredArgsConstructor
+@PreAuthorize("hasRole('TEACHER')")
 public class TeacherStudentController {
 
+    private final TeacherService teacherService;
     private final UserRepository userRepository;
-    private final AuthService authService;
 
     private User getCurrentUser(UserDetails userDetails) {
         return userRepository.findByUsername(userDetails.getUsername()).orElseThrow();
     }
 
     @GetMapping
-    public List<UserResponse> getMyStudents(@AuthenticationPrincipal UserDetails userDetails) {
-        User currentUser = getCurrentUser(userDetails);
-        return userRepository.findByRoleAndCreatedById(Role.STUDENT, currentUser.getId()).stream()
-                .map(UserResponse::fromEntity)
-                .toList();
+    public PageResponse<UserResponse> getStudents(
+            @ModelAttribute BaseSearchRequest req,
+            @RequestParam(required = false) String status,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        return teacherService.searchStudents(getCurrentUser(userDetails), req);
     }
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public UserResponse createStudent(@RequestBody @Valid RegisterRequest req, @AuthenticationPrincipal UserDetails userDetails) {
-        if (req.role() != Role.STUDENT) {
-            throw new BusinessException("Giáo viên chỉ có thể tạo tài khoản cho HỌC SINH (role = STUDENT)");
-        }
-        User currentUser = getCurrentUser(userDetails);
-        UserResponse response = authService.createByAdmin(req);
-        
-        // Update createdById manually since AuthService doesn't know about it
-        User student = userRepository.findById(response.id()).orElseThrow();
-        student.setCreatedById(currentUser.getId());
-        userRepository.save(student);
-        
-        return UserResponse.fromEntity(student);
+    public UserResponse createStudent(
+            @RequestBody @Valid RegisterRequest req,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        return teacherService.createStudent(getCurrentUser(userDetails), req);
+    }
+
+    @PutMapping("/{id}")
+    public UserResponse updateStudent(
+            @PathVariable Long id,
+            @RequestBody @Valid UpdateUserRequest req,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        return teacherService.updateStudent(getCurrentUser(userDetails), id, req);
+    }
+
+    @DeleteMapping("/{id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void deleteStudent(
+            @PathVariable Long id,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        teacherService.softDeleteStudent(getCurrentUser(userDetails), id);
+    }
+
+    @PutMapping("/{id}/reset-password")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void resetPassword(
+            @PathVariable Long id,
+            @RequestBody Map<String, String> payload,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        teacherService.resetStudentPassword(getCurrentUser(userDetails), id, payload.get("newPassword"));
+    }
+
+    @GetMapping("/{id}/detail")
+    public UserResponse getStudentDetail(
+            @PathVariable Long id,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        return teacherService.getStudentDetail(getCurrentUser(userDetails), id);
     }
 }

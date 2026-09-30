@@ -51,6 +51,9 @@ public class ViewPageController {
     public String adminAuditLog() { return "admin/audit-log"; }
 
     // ==================== TEACHER ====================
+    @GetMapping("/teacher")
+    public String teacherDashboard() { return "teacher/dashboard"; }
+
     @GetMapping("/teacher/courses")
     public String teacherCourses() { return "teacher/courses"; }
 
@@ -68,6 +71,9 @@ public class ViewPageController {
 
     @GetMapping("/teacher/students")
     public String teacherStudents() { return "teacher/students"; }
+    
+    @GetMapping("/teacher/student-detail")
+    public String teacherStudentDetail() { return "teacher/student-detail"; }
 
     @GetMapping("/teacher/sessions")
     public String teacherSessions() { return "teacher/sessions"; }

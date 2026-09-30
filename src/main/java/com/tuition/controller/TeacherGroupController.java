@@ -18,13 +18,17 @@ import org.springframework.web.bind.annotation.*;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
+import com.tuition.dto.PageResponse;
+import com.tuition.service.TeacherService;
 
 @RestController
 @RequestMapping("/api/teacher/groups")
 @RequiredArgsConstructor
+@PreAuthorize("hasRole('TEACHER')")
 public class TeacherGroupController {
 
     private final GroupService groupService;
+    private final TeacherService teacherService;
     private final UserRepository userRepository;
 
     private User getCurrentUser(UserDetails userDetails) {
@@ -32,8 +36,12 @@ public class TeacherGroupController {
     }
 
     @GetMapping
-    public List<GroupResponse> getMyGroups(@AuthenticationPrincipal UserDetails userDetails) {
-        return groupService.listByCurrentTeacher(getCurrentUser(userDetails));
+    public PageResponse<GroupResponse> getMyGroups(
+            @ModelAttribute com.tuition.dto.BaseSearchRequest req,
+            @RequestParam(required = false) Long courseId,
+            @RequestParam(required = false) String status,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        return teacherService.searchGroups(getCurrentUser(userDetails), req.getKeyword(), courseId, status, req.getPage(), req.getSize(), req.getSortBy(), req.getSortDir());
     }
 
     @GetMapping("/{id}")

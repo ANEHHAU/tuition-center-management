@@ -3,37 +3,60 @@
 <body>
   <main class="space-y-6">
     <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center space-y-4 sm:space-y-0">
-      <h2 class="text-2xl font-bold text-gray-800">Quản lý Lớp / Nhóm</h2>
-      <a href="group-form" class="px-4 py-2 bg-blue-600 text-white rounded shadow hover:bg-blue-700">Tạo nhóm mới</a>
+      <h2 class="text-2xl font-bold text-gray-800">Quản lý Nhóm/Lớp</h2>
+      <a href="/teacher/group-form" class="px-4 py-2 bg-blue-600 text-white rounded-lg shadow hover:bg-blue-700 transition flex items-center space-x-2">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+        <span>Tạo nhóm mới</span>
+      </a>
     </div>
 
-    <div id="error-msg" class="text-red-600 text-sm"></div>
+    <!-- Search & Filter -->
+    <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div th:replace="~{layout/fragments/search-bar :: searchBar('Tên nhóm...')}"></div>
+      
+      <div class="flex items-center space-x-3">
+        <select id="filterCourse" class="border-gray-300 rounded-md shadow-sm text-sm focus:ring-blue-500 focus:border-blue-500" onchange="ListHelper.setFilter('courseId', this.value)">
+          <option value="">Tất cả khóa học</option>
+        </select>
+        
+        <select id="filterStatus" class="border-gray-300 rounded-md shadow-sm text-sm focus:ring-blue-500 focus:border-blue-500" onchange="ListHelper.setFilter('status', this.value)">
+          <option value="">Tất cả trạng thái</option>
+          <option value="ACTIVE">Hoạt động</option>
+          <option value="INACTIVE">Đã ẩn</option>
+          <option value="COMPLETED">Hoàn thành</option>
+        </select>
+      </div>
+    </div>
 
+    <!-- Table -->
     <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
       <div class="overflow-x-auto">
         <table class="w-full text-left border-collapse">
           <thead>
-            <tr class="bg-gray-100 text-gray-600 text-sm uppercase tracking-wider border-b">
-              <th class="px-4 py-3 font-medium">ID</th>
-              <th class="px-4 py-3 font-medium">Tên Lớp</th>
-              <th class="px-4 py-3 font-medium">Khóa Học</th>
-              <th class="px-4 py-3 font-medium">Trạng thái</th>
+            <tr class="bg-gray-50 text-gray-600 text-sm uppercase tracking-wider border-b">
+              <th th:replace="~{layout/fragments/sort-header :: sortHeader('Tên Nhóm', 'name')}"></th>
+              <th class="px-4 py-3 font-medium">Khóa học</th>
               <th class="px-4 py-3 font-medium">Số HS</th>
-              <th class="px-4 py-3 font-medium">Hành động</th>
+              <th th:replace="~{layout/fragments/sort-header :: sortHeader('Ngày Bắt Đầu', 'startDate')}"></th>
+              <th class="px-4 py-3 font-medium">Trạng thái</th>
+              <th class="px-4 py-3 font-medium text-right">Hành động</th>
             </tr>
           </thead>
-          <tbody id="groups-tbody">
+          <tbody id="tableBody">
             <!-- Render by JS -->
           </tbody>
         </table>
       </div>
+      
+      <!-- Pagination -->
+      <div th:replace="~{layout/fragments/pagination :: pagination}"></div>
     </div>
 
-    <script th:src="@{/js/group.js}"></script>
+    <script th:src="@{/js/teacher/group.js}"></script>
     <script>
       document.addEventListener("DOMContentLoaded", function() {
         window.authService.requireAuth(['TEACHER']);
-        GroupManager.init('TEACHER');
+        GroupManager.init();
       });
     </script>
   </main>

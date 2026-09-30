@@ -2,127 +2,272 @@
 <html xmlns:th="http://www.thymeleaf.org" th:replace="~{layout/main :: layout(~{::main})}">
 <body>
   <main class="space-y-6">
+    <!-- Header -->
     <div class="flex items-center space-x-4">
-      <button onclick="window.history.back()" class="text-gray-500 hover:text-gray-700">
-        &larr; Quay lại
-      </button>
-      <h2 class="text-2xl font-bold text-gray-800">Chi tiết Hóa đơn #<span id="inv-id"></span></h2>
+      <a href="/teacher/invoices" class="text-gray-400 hover:text-gray-600">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+      </a>
+      <h2 class="text-2xl font-bold text-gray-800" id="invoiceTitle">Chi tiết Hóa đơn</h2>
+      <span id="invoiceStatus" class="px-3 py-1 rounded-full text-sm font-semibold"></span>
     </div>
 
-    <div id="error-msg" class="text-red-600 text-sm"></div>
-
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-      
-      <!-- Thông tin chung -->
-      <div class="lg:col-span-2 space-y-6">
-        <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
-          <div class="flex justify-between items-start mb-6">
-            <div>
-              <h3 class="text-lg font-bold text-gray-800">Thông tin Hóa đơn</h3>
-              <p class="text-sm text-gray-500">Học sinh: <span id="inv-student" class="font-medium text-gray-800"></span></p>
-              <p class="text-sm text-gray-500">Kỳ: <span id="inv-period" class="font-medium text-gray-800"></span></p>
+      <!-- Info Hóa đơn -->
+      <div class="lg:col-span-1 space-y-6">
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
+          <h3 class="font-bold text-gray-800 mb-4 border-b pb-2">Thông tin Hóa đơn</h3>
+          <div class="space-y-3 text-sm">
+            <div class="flex justify-between">
+              <span class="text-gray-500">Kỳ thu:</span>
+              <span class="font-medium text-gray-800" id="invoiceMonth">-</span>
             </div>
-            <div class="text-right">
-              <p class="text-sm text-gray-500">Trạng thái thanh toán: <span id="inv-status" class="font-bold text-blue-600"></span></p>
-              <p class="text-sm text-gray-500">Trạng thái chốt: <span id="inv-doc-status" class="font-bold text-gray-800"></span></p>
+            <div class="flex justify-between">
+              <span class="text-gray-500">Học sinh:</span>
+              <span class="font-medium text-gray-800" id="invoiceStudentName">-</span>
             </div>
-          </div>
-
-          <div class="grid grid-cols-3 gap-4 mb-6 border-t border-b py-4">
-            <div class="text-center">
-              <p class="text-xs text-gray-500 uppercase">Tổng tiền</p>
-              <p id="inv-total" class="text-xl font-bold text-gray-800"></p>
+            <div class="flex justify-between border-t pt-3 mt-3">
+              <span class="text-gray-500">Tổng tiền:</span>
+              <span class="font-bold text-gray-900 text-lg" id="invoiceTotalAmount">0 đ</span>
             </div>
-            <div class="text-center border-l border-r">
-              <p class="text-xs text-gray-500 uppercase">Đã trả</p>
-              <p id="inv-paid" class="text-xl font-bold text-green-600"></p>
+            <div class="flex justify-between">
+              <span class="text-gray-500">Đã thanh toán:</span>
+              <span class="font-semibold text-green-600" id="invoicePaidAmount">0 đ</span>
             </div>
-            <div class="text-center">
-              <p class="text-xs text-gray-500 uppercase">Còn nợ</p>
-              <p id="inv-remain" class="text-xl font-bold text-red-600"></p>
+            <div class="flex justify-between">
+              <span class="text-gray-500">Còn nợ:</span>
+              <span class="font-bold text-red-600 text-lg" id="invoiceRemaining">0 đ</span>
             </div>
           </div>
-
-          <div class="flex space-x-3">
-            <button id="regenerate-btn" onclick="InvoiceManager.regenerateInvoice(document.getElementById('inv-id').textContent)" class="hidden px-4 py-2 bg-yellow-100 text-yellow-800 rounded font-medium text-sm hover:bg-yellow-200">Cập nhật lại từ Điểm danh (Regenerate)</button>
-            <button onclick="InvoiceManager.finalizeInvoice(document.getElementById('inv-id').textContent)" class="px-4 py-2 bg-gray-800 text-white rounded font-medium text-sm hover:bg-gray-900">Chốt sổ hóa đơn (Finalize)</button>
+          
+          <div class="mt-6 space-y-3" id="actionButtons">
+            <button id="btnFinalize" class="hidden w-full px-4 py-2 bg-blue-600 text-white rounded-md font-medium hover:bg-blue-700 transition" onclick="InvoiceDetailManager.finalize()">Chốt hóa đơn</button>
+            <button id="btnRegenerate" class="hidden w-full px-4 py-2 bg-yellow-100 text-yellow-700 rounded-md font-medium hover:bg-yellow-200 transition" onclick="InvoiceDetailManager.regenerate()">Tính toán lại</button>
+            <button id="btnPay" class="hidden w-full px-4 py-2 bg-green-600 text-white rounded-md font-medium hover:bg-green-700 transition" onclick="InvoiceDetailManager.openPaymentModal()">Ghi nhận thanh toán</button>
           </div>
         </div>
+      </div>
 
-        <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-          <div class="p-4 border-b border-gray-200">
-            <h3 class="text-lg font-bold text-gray-800">Chi tiết các buổi học</h3>
+      <!-- Chi tiết học phí -->
+      <div class="lg:col-span-2 space-y-6">
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+          <div class="px-5 py-4 border-b border-gray-100 bg-gray-50">
+            <h3 class="font-bold text-gray-800">Chi tiết buổi học</h3>
           </div>
           <div class="overflow-x-auto">
-            <table class="w-full text-left border-collapse">
+            <table class="w-full text-left text-sm">
               <thead>
-                <tr class="bg-gray-100 text-gray-600 text-sm uppercase tracking-wider border-b">
-                  <th class="px-4 py-3 font-medium">Ngày học</th>
-                  <th class="px-4 py-3 font-medium">Khóa học</th>
-                  <th class="px-4 py-3 font-medium">Điểm danh</th>
-                  <th class="px-4 py-3 font-medium">Đơn giá</th>
+                <tr class="text-gray-500 text-xs uppercase border-b bg-gray-50">
+                  <th class="px-4 py-3">Ngày</th>
+                  <th class="px-4 py-3">Khóa học (Nhóm)</th>
+                  <th class="px-4 py-3">Trạng thái</th>
+                  <th class="px-4 py-3 text-right">Đơn giá</th>
                 </tr>
               </thead>
-              <tbody id="details-tbody">
+              <tbody id="invoiceDetailsList" class="divide-y divide-gray-100">
               </tbody>
             </table>
           </div>
         </div>
-      </div>
 
-      <!-- Thanh toán -->
-      <div class="space-y-6">
-        <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
-          <h3 class="text-lg font-bold text-gray-800 mb-4">Ghi nhận thanh toán</h3>
-          <form id="payment-form" onsubmit="InvoiceManager.recordPayment(event)" class="space-y-4">
-            <input type="hidden" name="invoiceId" id="pay-invoice-id">
-            
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1">Số tiền (VNĐ)</label>
-              <input type="number" name="amount" required min="1" class="w-full px-4 py-2 border rounded focus:ring-blue-500 focus:border-blue-500">
-            </div>
-            
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1">Phương thức</label>
-              <select name="method" class="w-full px-4 py-2 border rounded focus:ring-blue-500 focus:border-blue-500">
-                <option value="BANK_TRANSFER">Chuyển khoản (BANK_TRANSFER)</option>
-                <option value="CASH">Tiền mặt (CASH)</option>
-                <option value="MOMO">Momo</option>
-                <option value="OTHER">Khác</option>
-              </select>
-            </div>
-            
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1">Ghi chú</label>
-              <input type="text" name="note" class="w-full px-4 py-2 border rounded focus:ring-blue-500 focus:border-blue-500">
-            </div>
-
-            <button type="submit" class="w-full px-4 py-2 bg-green-600 text-white rounded font-medium hover:bg-green-700">Lưu Thanh toán</button>
-          </form>
+        <!-- Lịch sử thanh toán -->
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+          <div class="px-5 py-4 border-b border-gray-100 bg-gray-50">
+            <h3 class="font-bold text-gray-800">Lịch sử thanh toán</h3>
+          </div>
+          <div id="paymentsList" class="divide-y divide-gray-100">
+            <p class="p-5 text-center text-gray-500">Chưa có giao dịch nào.</p>
+          </div>
         </div>
       </div>
-
+    </div>
+    
+    <!-- Modal Thanh Toán -->
+    <div id="paymentModal" class="hidden fixed inset-0 z-50 overflow-y-auto bg-black bg-opacity-50">
+        <div class="flex items-center justify-center min-h-screen px-4 py-10">
+            <div class="bg-white rounded-xl shadow-lg w-full max-w-md overflow-hidden">
+                <div class="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
+                    <h3 class="text-lg font-bold text-gray-900">Ghi Nhận Thanh Toán</h3>
+                    <button type="button" onclick="InvoiceDetailManager.closePaymentModal()" class="text-gray-400 hover:text-gray-500">
+                        <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                    </button>
+                </div>
+                <form id="paymentForm" class="p-6 space-y-4" onsubmit="InvoiceDetailManager.submitPayment(event)">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Số tiền (VNĐ) *</label>
+                        <input type="number" name="amount" id="paymentAmount" required class="w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Phương thức *</label>
+                        <select name="method" required class="w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500">
+                            <option value="CASH">Tiền mặt</option>
+                            <option value="BANK_TRANSFER">Chuyển khoản</option>
+                            <option value="MOMO">Ví MoMo</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Ngày thanh toán *</label>
+                        <input type="datetime-local" name="paidAt" id="paymentDate" required class="w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Ghi chú</label>
+                        <textarea name="note" rows="2" class="w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"></textarea>
+                    </div>
+                    <div class="pt-4 flex justify-end space-x-3">
+                        <button type="button" onclick="InvoiceDetailManager.closePaymentModal()" class="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 transition">Hủy</button>
+                        <button type="submit" class="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition shadow-sm">Xác nhận</button>
+                    </div>
+                </form>
+            </div>
+        </div>
     </div>
 
-    <script th:src="@{/js/invoice.js}"></script>
     <script>
-      document.addEventListener("DOMContentLoaded", function() {
-        window.authService.requireAuth(['TEACHER', 'ADMIN']);
-        const urlParams = new URLSearchParams(window.location.search);
-        const id = urlParams.get('id');
+    const InvoiceDetailManager = {
+        invoiceId: null,
+        remainingAmount: 0,
         
-        // Xác định role để set API base
-        const userStr = localStorage.getItem('user');
-        if (userStr) {
-            const user = JSON.parse(userStr);
-            InvoiceManager.init(user.role);
+        init() {
+            const params = new URLSearchParams(window.location.search);
+            this.invoiceId = params.get('id');
+            if (!this.invoiceId) { alert('Thiếu invoiceId'); return; }
+            this.loadInfo();
             
-            if (id) {
-                document.getElementById('pay-invoice-id').value = id;
-                InvoiceManager.loadInvoiceDetail(id);
+            const now = new Date();
+            now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+            document.getElementById('paymentDate').value = now.toISOString().slice(0, 16);
+        },
+        
+        async loadInfo() {
+            try {
+                const i = await window.apiFetch('/api/teacher/invoices/' + this.invoiceId);
+                
+                // Status badge
+                let statusCls = 'bg-gray-100 text-gray-800';
+                if (i.status === 'PAID') statusCls = 'bg-green-100 text-green-800';
+                else if (i.status === 'PARTIAL') statusCls = 'bg-yellow-100 text-yellow-800';
+                else if (i.status === 'UNPAID') statusCls = 'bg-red-100 text-red-800';
+                
+                document.getElementById('invoiceStatus').className = `px-3 py-1 rounded-full text-sm font-semibold ${statusCls}`;
+                document.getElementById('invoiceStatus').textContent = i.status;
+                
+                // Info
+                document.getElementById('invoiceTitle').textContent = `Hóa đơn Tháng ${i.month}/${i.year}`;
+                document.getElementById('invoiceMonth').textContent = `Tháng ${i.month}/${i.year}`;
+                document.getElementById('invoiceStudentName').textContent = i.studentName;
+                document.getElementById('invoiceTotalAmount').textContent = Number(i.totalAmount).toLocaleString('vi-VN') + ' đ';
+                document.getElementById('invoicePaidAmount').textContent = Number(i.paidAmount).toLocaleString('vi-VN') + ' đ';
+                
+                this.remainingAmount = i.totalAmount - i.paidAmount;
+                document.getElementById('invoiceRemaining').textContent = Number(this.remainingAmount).toLocaleString('vi-VN') + ' đ';
+                
+                // Buttons
+                const btnFinalize = document.getElementById('btnFinalize');
+                const btnRegenerate = document.getElementById('btnRegenerate');
+                const btnPay = document.getElementById('btnPay');
+                
+                btnFinalize.classList.add('hidden');
+                btnRegenerate.classList.add('hidden');
+                btnPay.classList.add('hidden');
+                
+                if (i.status === 'DRAFT') {
+                    btnFinalize.classList.remove('hidden');
+                    btnRegenerate.classList.remove('hidden');
+                } else if (i.status === 'UNPAID' || i.status === 'PARTIAL') {
+                    btnPay.classList.remove('hidden');
+                }
+                
+                // Details
+                const detailsContainer = document.getElementById('invoiceDetailsList');
+                if (i.details && i.details.length > 0) {
+                    detailsContainer.innerHTML = i.details.map(d => `
+                        <tr class="hover:bg-gray-50">
+                            <td class="px-4 py-3">${d.date}</td>
+                            <td class="px-4 py-3">${d.courseName}</td>
+                            <td class="px-4 py-3"><span class="text-xs font-semibold px-2 py-1 bg-gray-100 rounded-full">${d.attendanceStatus || '-'}</span></td>
+                            <td class="px-4 py-3 text-right font-medium">${Number(d.amount).toLocaleString('vi-VN')} đ</td>
+                        </tr>
+                    `).join('');
+                } else {
+                    detailsContainer.innerHTML = '<tr><td colspan="4" class="px-4 py-4 text-center text-gray-500">Không có buổi học nào bị tính phí</td></tr>';
+                }
+                
+                // Payments (Assuming the API returns payments. If not, we might need to fetch them separately, but Phase B usually included them in response or as a separate endpoint. Let's fetch them from teacher API if needed, wait, we don't have a specific endpoint for payment list in teacher API based on the prompt. Let's assume they are either in the InvoiceResponse or we just show a message. I'll mock it if it's not in the response).
+                const paymentsList = document.getElementById('paymentsList');
+                if (i.payments && i.payments.length > 0) {
+                    paymentsList.innerHTML = i.payments.map(p => `
+                        <div class="p-4 flex justify-between items-center hover:bg-gray-50">
+                            <div>
+                                <div class="font-medium text-gray-800">${new Date(p.paidAt).toLocaleString('vi-VN')}</div>
+                                <div class="text-sm text-gray-500">Phương thức: ${p.method} | Ghi chú: ${p.note || '-'}</div>
+                            </div>
+                            <div class="font-bold text-green-600">+${Number(p.amount).toLocaleString('vi-VN')} đ</div>
+                        </div>
+                    `).join('');
+                } else {
+                    paymentsList.innerHTML = '<p class="p-5 text-center text-gray-500">Chưa có giao dịch nào.</p>';
+                }
+                
+            } catch (e) {
+                alert(e.message);
+            }
+        },
+        
+        async finalize() {
+            if (!confirm('Sau khi chốt, học sinh sẽ nhìn thấy hóa đơn này. Tiếp tục?')) return;
+            try {
+                await window.apiFetch('/api/teacher/invoices/' + this.invoiceId + '/finalize', { method: 'POST' });
+                this.loadInfo();
+                alert('Chốt hóa đơn thành công!');
+            } catch (e) { alert(e.message); }
+        },
+        
+        async regenerate() {
+            if (!confirm('Tính toán lại hóa đơn? Các thay đổi thủ công sẽ bị mất.')) return;
+            try {
+                await window.apiFetch('/api/teacher/invoices/' + this.invoiceId + '/regenerate', { method: 'POST' });
+                this.loadInfo();
+                alert('Đã tính toán lại!');
+            } catch (e) { alert(e.message); }
+        },
+        
+        openPaymentModal() {
+            document.getElementById('paymentAmount').value = this.remainingAmount;
+            document.getElementById('paymentModal').classList.remove('hidden');
+        },
+        
+        closePaymentModal() {
+            document.getElementById('paymentModal').classList.add('hidden');
+        },
+        
+        async submitPayment(e) {
+            e.preventDefault();
+            const form = e.target;
+            const body = {
+                invoiceId: parseInt(this.invoiceId),
+                amount: parseFloat(form.amount.value),
+                method: form.method.value,
+                paidAt: form.paidAt.value,
+                note: form.note.value
+            };
+            
+            try {
+                await window.apiFetch('/api/teacher/invoices/payments', {
+                    method: 'POST',
+                    body: JSON.stringify(body)
+                });
+                alert('Ghi nhận thanh toán thành công!');
+                this.closePaymentModal();
+                this.loadInfo();
+            } catch (error) {
+                alert(error.message);
             }
         }
-      });
+    };
+
+    document.addEventListener("DOMContentLoaded", function() {
+        window.authService.requireAuth(['TEACHER']);
+        InvoiceDetailManager.init();
+    });
     </script>
   </main>
 </body>

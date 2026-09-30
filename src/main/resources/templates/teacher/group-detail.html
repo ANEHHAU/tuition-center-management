@@ -2,89 +2,379 @@
 <html xmlns:th="http://www.thymeleaf.org" th:replace="~{layout/main :: layout(~{::main})}">
 <body>
   <main class="space-y-6">
+    <!-- Header -->
     <div class="flex items-center space-x-4">
-      <button onclick="window.history.back()" class="text-gray-500 hover:text-gray-700">
-        &larr; Quay lại
-      </button>
-      <h2 class="text-2xl font-bold text-gray-800">Chi tiết Nhóm: <span id="group-name"></span></h2>
+      <a href="/teacher/groups" class="text-gray-400 hover:text-gray-600">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+      </a>
+      <h2 class="text-2xl font-bold text-gray-800" id="groupTitle">Chi tiết nhóm</h2>
     </div>
 
-    <div id="error-msg" class="text-red-600 text-sm"></div>
+    <!-- Tabs -->
+    <div class="border-b border-gray-200">
+      <nav class="-mb-px flex space-x-6" id="tabNav">
+        <button data-tab="info" class="tab-btn border-b-2 border-blue-500 text-blue-600 py-3 px-1 text-sm font-medium">Thông tin</button>
+        <button data-tab="students" class="tab-btn border-b-2 border-transparent text-gray-500 hover:text-gray-700 py-3 px-1 text-sm font-medium">Học sinh</button>
+        <button data-tab="sessions" class="tab-btn border-b-2 border-transparent text-gray-500 hover:text-gray-700 py-3 px-1 text-sm font-medium">Lịch học</button>
+        <button data-tab="attendance" class="tab-btn border-b-2 border-transparent text-gray-500 hover:text-gray-700 py-3 px-1 text-sm font-medium">Điểm danh</button>
+        <button data-tab="invoices" class="tab-btn border-b-2 border-transparent text-gray-500 hover:text-gray-700 py-3 px-1 text-sm font-medium">Hóa đơn</button>
+      </nav>
+    </div>
 
-    <!-- Public Link Section -->
-    <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
-      <h3 class="text-lg font-bold text-gray-800 mb-4">Chia sẻ Lịch học (Public Link)</h3>
-      <p class="text-sm text-gray-600 mb-4">Tạo link chia sẻ lịch học cho phụ huynh/học sinh mà không cần đăng nhập (chỉ xem ngày giờ, không xem danh sách hay học phí).</p>
-      
-      <div id="public-link-section" class="hidden mb-4 p-4 bg-gray-50 rounded border border-gray-200 flex flex-col sm:flex-row justify-between items-center space-y-3 sm:space-y-0">
-        <span id="public-link-url" class="text-blue-600 font-mono text-sm break-all w-full sm:w-auto"></span>
-        <div class="flex space-x-2 shrink-0 w-full sm:w-auto">
-          <button onclick="GroupManager.copyLink()" class="flex-1 sm:flex-none px-3 py-1.5 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 text-sm">Copy Link</button>
-          <a id="public-link-href" href="#" target="_blank" class="flex-1 sm:flex-none px-3 py-1.5 bg-blue-100 text-blue-700 rounded hover:bg-blue-200 text-sm text-center">Mở</a>
+    <!-- ===== TAB 1: Thông tin ===== -->
+    <div id="tab-info" class="tab-content">
+      <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 space-y-4">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div>
+            <label class="text-sm font-medium text-gray-500">Tên nhóm</label>
+            <p class="text-lg font-semibold text-gray-800" id="infoName">-</p>
+          </div>
+          <div>
+            <label class="text-sm font-medium text-gray-500">Khóa học</label>
+            <p class="text-lg text-gray-800" id="infoCourseName">-</p>
+          </div>
+          <div>
+            <label class="text-sm font-medium text-gray-500">Số học sinh</label>
+            <p class="text-lg text-gray-800" id="infoStudentCount">0</p>
+          </div>
+          <div>
+            <label class="text-sm font-medium text-gray-500">Trạng thái</label>
+            <p id="infoStatus">-</p>
+          </div>
+          <div>
+            <label class="text-sm font-medium text-gray-500">Ngày bắt đầu</label>
+            <p class="text-gray-800" id="infoStartDate">-</p>
+          </div>
+          <div>
+            <label class="text-sm font-medium text-gray-500">Ngày kết thúc</label>
+            <p class="text-gray-800" id="infoEndDate">-</p>
+          </div>
+        </div>
+
+        <!-- Public Link -->
+        <div class="mt-6 border-t pt-6">
+          <h4 class="text-sm font-semibold text-gray-700 uppercase tracking-wider mb-3">Public Link (Lịch học công khai)</h4>
+          <div class="flex flex-wrap items-center gap-3">
+            <input type="text" id="publicLinkUrl" readonly class="flex-1 min-w-0 border-gray-300 rounded-md bg-gray-50 text-sm px-3 py-2" placeholder="Chưa có link">
+            <button onclick="GroupDetailManager.copyPublicLink()" class="px-3 py-2 bg-gray-100 text-gray-700 rounded-md text-sm hover:bg-gray-200 transition">Copy</button>
+            <button onclick="GroupDetailManager.regenerateLink()" class="px-3 py-2 bg-blue-600 text-white rounded-md text-sm hover:bg-blue-700 transition">Tạo/Đổi link</button>
+            <button onclick="GroupDetailManager.revokeLink()" class="px-3 py-2 bg-red-100 text-red-700 rounded-md text-sm hover:bg-red-200 transition">Thu hồi</button>
+          </div>
         </div>
       </div>
-
-      <div class="flex space-x-3">
-        <button id="btn-regen-link" class="px-4 py-2 bg-blue-600 text-white rounded text-sm hover:bg-blue-700">Tạo / Reset Link</button>
-        <button id="btn-revoke-link" class="px-4 py-2 bg-red-100 text-red-700 rounded text-sm hover:bg-red-200">Hủy Link</button>
-      </div>
     </div>
 
-    <!-- Danh sách học sinh -->
-    <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-      <div class="p-4 border-b border-gray-200 flex flex-col sm:flex-row justify-between items-center space-y-3 sm:space-y-0">
-        <h3 class="text-lg font-bold text-gray-800">Danh sách Học sinh</h3>
-        <div class="flex space-x-2 w-full sm:w-auto">
-          <input type="number" id="add-student-id" placeholder="Nhập ID học sinh..." class="w-full sm:w-48 px-3 py-1.5 border rounded focus:ring-blue-500 focus:border-blue-500 text-sm">
-          <button id="btn-add-student" class="px-4 py-1.5 bg-green-600 text-white rounded text-sm hover:bg-green-700 shrink-0">Thêm</button>
+    <!-- ===== TAB 2: Học sinh ===== -->
+    <div id="tab-students" class="tab-content hidden">
+      <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+        <div class="p-4 border-b border-gray-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-gray-50">
+          <h3 class="font-semibold text-gray-800">Danh sách học sinh trong nhóm</h3>
+          <div class="flex items-center space-x-2">
+            <select id="addStudentSelect" class="border-gray-300 rounded-md text-sm focus:ring-blue-500 focus:border-blue-500 w-48">
+              <option value="">-- Chọn HS để thêm --</option>
+            </select>
+            <button onclick="GroupDetailManager.addStudent()" class="px-3 py-2 bg-blue-600 text-white rounded-md text-sm hover:bg-blue-700 transition">Thêm</button>
+          </div>
+        </div>
+        <div class="overflow-x-auto">
+          <table class="w-full text-left">
+            <thead>
+              <tr class="text-gray-600 text-xs uppercase tracking-wider border-b bg-gray-50">
+                <th class="px-4 py-3">Họ tên</th>
+                <th class="px-4 py-3">Email</th>
+                <th class="px-4 py-3">SĐT</th>
+                <th class="px-4 py-3">Ngày tham gia</th>
+                <th class="px-4 py-3 text-right">Hành động</th>
+              </tr>
+            </thead>
+            <tbody id="studentsBody" class="divide-y divide-gray-100"></tbody>
+          </table>
         </div>
       </div>
-      
-      <div class="overflow-x-auto">
-        <table class="w-full text-left border-collapse">
-          <thead>
-            <tr class="bg-gray-100 text-gray-600 text-sm uppercase tracking-wider border-b">
-              <th class="px-4 py-3 font-medium">ID HS</th>
-              <th class="px-4 py-3 font-medium">Tên Học Sinh</th>
-              <th class="px-4 py-3 font-medium">Ngày vào</th>
-              <th class="px-4 py-3 font-medium">Trạng thái</th>
-              <th class="px-4 py-3 font-medium">Hành động</th>
-            </tr>
-          </thead>
-          <tbody id="students-tbody">
-            <!-- Render by JS -->
-          </tbody>
-        </table>
+    </div>
+
+    <!-- ===== TAB 3: Lịch học ===== -->
+    <div id="tab-sessions" class="tab-content hidden">
+      <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+        <div class="p-4 border-b border-gray-200 flex items-center justify-between bg-gray-50">
+          <h3 class="font-semibold text-gray-800">Lịch học</h3>
+          <a id="linkAddSession" href="#" class="px-3 py-2 bg-blue-600 text-white rounded-md text-sm hover:bg-blue-700 transition">Thêm buổi học</a>
+        </div>
+        <div class="overflow-x-auto">
+          <table class="w-full text-left">
+            <thead>
+              <tr class="text-gray-600 text-xs uppercase tracking-wider border-b bg-gray-50">
+                <th class="px-4 py-3">Ngày</th>
+                <th class="px-4 py-3">Thời gian</th>
+                <th class="px-4 py-3">Phòng</th>
+                <th class="px-4 py-3">Trạng thái</th>
+                <th class="px-4 py-3 text-right">Hành động</th>
+              </tr>
+            </thead>
+            <tbody id="sessionsBody" class="divide-y divide-gray-100"></tbody>
+          </table>
+        </div>
       </div>
     </div>
 
-    <script th:src="@{/js/group.js}"></script>
+    <!-- ===== TAB 4: Điểm danh ===== -->
+    <div id="tab-attendance" class="tab-content hidden">
+      <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+        <div class="p-4 border-b border-gray-200 bg-gray-50">
+          <h3 class="font-semibold text-gray-800 mb-2">Chọn buổi học để điểm danh</h3>
+          <select id="attendanceSessionSelect" class="w-full md:w-1/2 border-gray-300 rounded-md text-sm" onchange="GroupDetailManager.loadAttendance(this.value)">
+            <option value="">-- Chọn buổi --</option>
+          </select>
+        </div>
+        <div id="attendanceList" class="p-4">
+          <p class="text-center text-gray-500 py-4">Chọn buổi học để xem điểm danh.</p>
+        </div>
+        <div class="p-4 border-t border-gray-200 flex justify-end">
+          <button id="btnSaveAttendance" onclick="GroupDetailManager.saveAttendance()" class="hidden px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition">Lưu điểm danh</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== TAB 5: Hóa đơn ===== -->
+    <div id="tab-invoices" class="tab-content hidden">
+      <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+        <div class="p-4 border-b border-gray-200 bg-gray-50">
+          <h3 class="font-semibold text-gray-800">Hóa đơn liên quan</h3>
+        </div>
+        <div id="invoicesList" class="p-4">
+          <p class="text-center text-gray-500 py-4">Đang tải...</p>
+        </div>
+      </div>
+    </div>
+
     <script>
-      document.addEventListener("DOMContentLoaded", async function() {
-        window.authService.requireAuth(['TEACHER']);
-        GroupManager.init('TEACHER');
-        const urlParams = new URLSearchParams(window.location.search);
-        const groupId = urlParams.get('id');
-        
-        if (groupId) {
-          try {
-            const group = await apiFetch('/api/teacher/groups/' + groupId);
-            document.getElementById('group-name').textContent = group.name;
-            if (group.publicToken) {
-              const url = window.location.origin + '/public/schedule/' + group.publicToken;
-              document.getElementById('public-link-url').textContent = url;
-              document.getElementById('public-link-href').href = '/public/schedule/' + group.publicToken;
-              document.getElementById('public-link-section').classList.remove('hidden');
+    const GroupDetailManager = {
+        groupId: null,
+        currentAttendanceSessionId: null,
+
+        init() {
+            const params = new URLSearchParams(window.location.search);
+            this.groupId = params.get('id');
+            if (!this.groupId) { alert('Thiếu groupId'); return; }
+            this.setupTabs();
+            this.loadGroupInfo();
+            this.loadStudents();
+            this.loadSessions();
+        },
+
+        setupTabs() {
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    document.querySelectorAll('.tab-btn').forEach(b => {
+                        b.classList.remove('border-blue-500', 'text-blue-600');
+                        b.classList.add('border-transparent', 'text-gray-500');
+                    });
+                    btn.classList.add('border-blue-500', 'text-blue-600');
+                    btn.classList.remove('border-transparent', 'text-gray-500');
+                    document.querySelectorAll('.tab-content').forEach(c => c.classList.add('hidden'));
+                    document.getElementById('tab-' + btn.dataset.tab).classList.remove('hidden');
+                });
+            });
+        },
+
+        async loadGroupInfo() {
+            try {
+                const g = await window.apiFetch('/api/teacher/groups/' + this.groupId);
+                document.getElementById('groupTitle').textContent = g.name;
+                document.getElementById('infoName').textContent = g.name;
+                document.getElementById('infoCourseName').textContent = g.courseName;
+                document.getElementById('infoStudentCount').textContent = g.studentCount;
+                document.getElementById('infoStatus').innerHTML = `<span class="px-2 py-1 text-xs font-semibold rounded-full ${g.status === 'ACTIVE' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}">${g.status}</span>`;
+                document.getElementById('infoStartDate').textContent = g.startDate || '-';
+                document.getElementById('infoEndDate').textContent = g.endDate || '-';
+                document.getElementById('linkAddSession').href = '/teacher/session-form?groupId=' + this.groupId;
+
+                // Load public link
+                try {
+                    const link = await window.apiFetch('/api/teacher/groups/' + this.groupId + '/public-link');
+                    document.getElementById('publicLinkUrl').value = window.location.origin + link.url;
+                } catch (e) {
+                    document.getElementById('publicLinkUrl').value = '';
+                    document.getElementById('publicLinkUrl').placeholder = 'Chưa có link (nhấn Tạo/Đổi)';
+                }
+            } catch (e) { console.error(e); }
+        },
+
+        async loadStudents() {
+            try {
+                const enrollments = await window.apiFetch('/api/teacher/groups/' + this.groupId + '/students');
+                const tbody = document.getElementById('studentsBody');
+                if (!enrollments || enrollments.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="5" class="text-center py-4 text-gray-500">Chưa có học sinh</td></tr>';
+                    return;
+                }
+                tbody.innerHTML = enrollments.map(e => `
+                    <tr class="hover:bg-gray-50">
+                        <td class="px-4 py-3 font-medium text-gray-800">${e.studentName}</td>
+                        <td class="px-4 py-3 text-gray-600">${e.studentEmail || '-'}</td>
+                        <td class="px-4 py-3 text-gray-600">${e.studentPhone || '-'}</td>
+                        <td class="px-4 py-3 text-gray-600">${e.joinDate || '-'}</td>
+                        <td class="px-4 py-3 text-right">
+                            <button onclick="GroupDetailManager.removeStudent(${e.studentId})" class="text-red-600 hover:text-red-800 text-sm font-medium">Xóa khỏi nhóm</button>
+                        </td>
+                    </tr>
+                `).join('');
+
+                // Load student dropdown
+                const myStudents = await window.apiFetch('/api/teacher/students?size=100');
+                const select = document.getElementById('addStudentSelect');
+                select.innerHTML = '<option value="">-- Chọn HS để thêm --</option>';
+                const enrolledIds = enrollments.map(e => e.studentId);
+                if (myStudents.content) {
+                    myStudents.content.filter(s => !enrolledIds.includes(s.id)).forEach(s => {
+                        const opt = document.createElement('option');
+                        opt.value = s.id;
+                        opt.textContent = s.fullName + ' (' + s.email + ')';
+                        select.appendChild(opt);
+                    });
+                }
+            } catch (e) { console.error(e); }
+        },
+
+        async addStudent() {
+            const studentId = document.getElementById('addStudentSelect').value;
+            if (!studentId) { alert('Vui lòng chọn học sinh'); return; }
+            try {
+                await window.apiFetch('/api/teacher/groups/' + this.groupId + '/students', {
+                    method: 'POST',
+                    body: JSON.stringify({ studentId: parseInt(studentId) })
+                });
+                this.loadStudents();
+                this.loadGroupInfo();
+            } catch (e) { alert(e.message); }
+        },
+
+        async removeStudent(studentId) {
+            if (!confirm('Xóa học sinh khỏi nhóm?')) return;
+            try {
+                await window.apiFetch('/api/teacher/groups/' + this.groupId + '/students/' + studentId, { method: 'DELETE' });
+                this.loadStudents();
+                this.loadGroupInfo();
+            } catch (e) { alert(e.message); }
+        },
+
+        async loadSessions() {
+            try {
+                const res = await window.apiFetch('/api/teacher/sessions?groupId=' + this.groupId + '&size=100&sortBy=date&sortDir=asc');
+                const tbody = document.getElementById('sessionsBody');
+                const attSelect = document.getElementById('attendanceSessionSelect');
+                
+                if (!res.content || res.content.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="5" class="text-center py-4 text-gray-500">Chưa có buổi học</td></tr>';
+                    return;
+                }
+                tbody.innerHTML = res.content.map(s => {
+                    let cls = s.status === 'COMPLETED' ? 'bg-green-100 text-green-800' : s.status === 'CANCELLED' ? 'bg-red-100 text-red-800' : 'bg-blue-100 text-blue-800';
+                    return `
+                    <tr class="hover:bg-gray-50">
+                        <td class="px-4 py-3 font-medium">${s.date}</td>
+                        <td class="px-4 py-3">${s.startTime} - ${s.endTime}</td>
+                        <td class="px-4 py-3">${s.room || '-'}</td>
+                        <td class="px-4 py-3"><span class="px-2 py-1 text-xs font-semibold rounded-full ${cls}">${s.status}</span></td>
+                        <td class="px-4 py-3 text-right space-x-2">
+                            <a href="/teacher/attendance?sessionId=${s.id}" class="text-indigo-600 hover:text-indigo-800 text-sm font-medium">Điểm danh</a>
+                            <button onclick="GroupDetailManager.cancelSession(${s.id})" class="text-red-600 hover:text-red-800 text-sm font-medium">Hủy</button>
+                        </td>
+                    </tr>`;
+                }).join('');
+
+                // Populate attendance session select
+                attSelect.innerHTML = '<option value="">-- Chọn buổi --</option>';
+                res.content.forEach(s => {
+                    const opt = document.createElement('option');
+                    opt.value = s.id;
+                    opt.textContent = s.date + ' ' + s.startTime + ' (' + s.status + ')';
+                    attSelect.appendChild(opt);
+                });
+            } catch (e) { console.error(e); }
+        },
+
+        async cancelSession(id) {
+            if (!confirm('Hủy buổi học này?')) return;
+            try {
+                await window.apiFetch('/api/teacher/sessions/' + id + '/cancel', { method: 'POST' });
+                this.loadSessions();
+            } catch (e) { alert(e.message); }
+        },
+
+        async loadAttendance(sessionId) {
+            if (!sessionId) return;
+            this.currentAttendanceSessionId = sessionId;
+            try {
+                const res = await window.apiFetch('/api/teacher/attendance/session/' + sessionId);
+                const container = document.getElementById('attendanceList');
+                document.getElementById('btnSaveAttendance').classList.remove('hidden');
+                if (!res.items || res.items.length === 0) {
+                    container.innerHTML = '<p class="text-center text-gray-500 py-4">Chưa có học sinh nào.</p>';
+                    return;
+                }
+                container.innerHTML = res.items.map(item => `
+                    <div class="flex flex-col md:flex-row md:items-center justify-between p-3 border-b hover:bg-gray-50 att-row" data-id="${item.studentId}">
+                        <div class="font-medium text-gray-800 mb-2 md:mb-0">${item.studentName}</div>
+                        <div class="flex flex-col md:flex-row items-start md:items-center space-y-2 md:space-y-0 md:space-x-4">
+                            <div class="flex space-x-4">
+                                <label class="flex items-center space-x-1"><input type="radio" name="att_${item.studentId}" value="PRESENT" class="text-green-600" ${item.status === 'PRESENT' || !item.status ? 'checked' : ''}><span class="text-sm text-green-700">Có mặt</span></label>
+                                <label class="flex items-center space-x-1"><input type="radio" name="att_${item.studentId}" value="ABSENT" class="text-red-600" ${item.status === 'ABSENT' ? 'checked' : ''}><span class="text-sm text-red-700">Vắng</span></label>
+                                <label class="flex items-center space-x-1"><input type="radio" name="att_${item.studentId}" value="EXCUSED" class="text-yellow-600" ${item.status === 'EXCUSED' ? 'checked' : ''}><span class="text-sm text-yellow-700">Có phép</span></label>
+                            </div>
+                            <input type="text" class="att-note border-gray-300 rounded text-sm w-full md:w-40" placeholder="Ghi chú" value="${item.note || ''}">
+                        </div>
+                    </div>
+                `).join('');
+            } catch (e) { alert(e.message); }
+        },
+
+        async saveAttendance() {
+            if (!this.currentAttendanceSessionId) return;
+            const items = [];
+            document.querySelectorAll('.att-row').forEach(row => {
+                const sid = row.dataset.id;
+                items.push({
+                    studentId: parseInt(sid),
+                    status: row.querySelector(`input[name="att_${sid}"]:checked`).value,
+                    note: row.querySelector('.att-note').value
+                });
+            });
+            try {
+                await window.apiFetch('/api/teacher/attendance/session/' + this.currentAttendanceSessionId, {
+                    method: 'POST', body: JSON.stringify({ items })
+                });
+                alert('Lưu điểm danh thành công!');
+            } catch (e) { alert(e.message); }
+        },
+
+        async regenerateLink() {
+            try {
+                const res = await window.apiFetch('/api/teacher/groups/' + this.groupId + '/public-link/regenerate', { method: 'POST' });
+                document.getElementById('publicLinkUrl').value = window.location.origin + res.url;
+                alert('Đã tạo/đổi link thành công!');
+            } catch (e) { alert(e.message); }
+        },
+
+        revokeLink() {
+            if (!confirm('Thu hồi link công khai?')) return;
+            window.apiFetch('/api/teacher/groups/' + this.groupId + '/public-link/revoke', { method: 'PUT' })
+                .then(() => { document.getElementById('publicLinkUrl').value = ''; alert('Đã thu hồi!'); })
+                .catch(e => alert(e.message));
+        },
+
+        copyPublicLink() {
+            const input = document.getElementById('publicLinkUrl');
+            if (input.value) {
+                navigator.clipboard.writeText(input.value).then(() => alert('Đã copy!'));
             }
-          } catch(e) {}
-          
-          GroupManager.loadStudents(groupId);
-          
-          document.getElementById('btn-regen-link').onclick = () => GroupManager.regenerateLink(groupId);
-          document.getElementById('btn-revoke-link').onclick = () => GroupManager.revokeLink(groupId);
-          document.getElementById('btn-add-student').onclick = () => GroupManager.addStudent(groupId);
         }
-      });
+    };
+
+    document.addEventListener("DOMContentLoaded", function() {
+        window.authService.requireAuth(['TEACHER']);
+        GroupDetailManager.init();
+    });
     </script>
   </main>
 </body>

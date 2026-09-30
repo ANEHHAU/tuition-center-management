@@ -3,91 +3,41 @@
 <body>
   <main class="space-y-6">
     <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center space-y-4 sm:space-y-0">
-      <h2 class="text-2xl font-bold text-gray-800">Điểm danh</h2>
+      <h2 class="text-2xl font-bold text-gray-800">Điểm Danh</h2>
+      <a id="btnExport" href="#" target="_blank" class="px-4 py-2 border border-green-600 text-green-600 rounded-lg shadow-sm hover:bg-green-50 transition flex items-center space-x-2">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+        <span>Xuất Excel/CSV</span>
+      </a>
     </div>
 
-    <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-200">
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">Chọn Lớp</label>
-          <select id="group-select" class="w-full px-3 py-2 border rounded focus:ring-blue-500 focus:border-blue-500">
-            <option value="">-- Chọn lớp --</option>
-          </select>
-        </div>
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">Chọn Buổi học</label>
-          <select id="session-select" class="w-full px-3 py-2 border rounded focus:ring-blue-500 focus:border-blue-500">
-            <option value="">-- Chọn buổi --</option>
-          </select>
-        </div>
-        <button id="btn-load-attendance" class="w-full px-4 py-2 bg-gray-800 text-white rounded hover:bg-gray-900">Xem danh sách</button>
-      </div>
+    <!-- Chọn buổi học -->
+    <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+      <label class="block text-sm font-medium text-gray-700 mb-2">Chọn buổi học hôm nay (hoặc sắp tới):</label>
+      <select id="sessionSelect" class="w-full md:w-1/2 border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 text-base py-2" onchange="AttendanceManager.loadAttendance(this.value)">
+        <option value="">-- Chọn buổi học --</option>
+      </select>
     </div>
 
-    <div id="error-msg" class="text-red-600 text-sm"></div>
-
+    <!-- Danh sách học sinh -->
     <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-      <div class="p-4 border-b border-gray-200 flex justify-between items-center">
-        <h3 class="text-lg font-bold text-gray-800">Danh sách Học sinh</h3>
-        <button id="btn-save-attendance" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 font-medium">Lưu Điểm danh</button>
+      <div class="bg-gray-50 px-6 py-3 border-b border-gray-200 flex justify-between items-center">
+        <h3 class="text-lg font-medium text-gray-800">Danh sách học sinh</h3>
+        <button id="btnSave" onclick="AttendanceManager.saveAttendance()" class="hidden px-4 py-2 bg-blue-600 text-white rounded-lg shadow hover:bg-blue-700 transition">
+          Lưu Điểm Danh
+        </button>
       </div>
-      <div class="overflow-x-auto">
-        <table class="w-full text-left border-collapse">
-          <thead>
-            <tr class="bg-gray-100 text-gray-600 text-sm uppercase tracking-wider border-b">
-              <th class="px-4 py-3 font-medium">Họ tên</th>
-              <th class="px-4 py-3 font-medium min-w-[250px]">Trạng thái</th>
-              <th class="px-4 py-3 font-medium">Ghi chú</th>
-            </tr>
-          </thead>
-          <tbody id="attendance-list">
-            <tr><td colspan="3" class="px-4 py-4 text-center text-gray-500">Vui lòng chọn lớp và buổi học.</td></tr>
-          </tbody>
-        </table>
+      
+      <div id="attendanceList" class="divide-y divide-gray-100">
+        <!-- Render by JS -->
+        <div class="p-6 text-center text-gray-500">Vui lòng chọn buổi học để điểm danh.</div>
       </div>
     </div>
 
-    <script th:src="@{/js/attendance.js}"></script>
+    <script th:src="@{/js/teacher/attendance.js}"></script>
     <script>
-      document.addEventListener("DOMContentLoaded", async function() {
+      document.addEventListener("DOMContentLoaded", function() {
         window.authService.requireAuth(['TEACHER']);
-        
-        try {
-            const groups = await apiFetch('/api/teacher/groups');
-            const select = document.getElementById('group-select');
-            groups.forEach(g => {
-                const opt = document.createElement('option');
-                opt.value = g.id;
-                opt.textContent = g.name;
-                select.appendChild(opt);
-            });
-        } catch(e) {}
-
-        document.getElementById('group-select').addEventListener('change', async function() {
-            const groupId = this.value;
-            const sSelect = document.getElementById('session-select');
-            sSelect.innerHTML = '<option value="">-- Chọn buổi --</option>';
-            if (!groupId) return;
-            try {
-                const sessions = await apiFetch('/api/teacher/sessions?groupId=' + groupId);
-                sessions.forEach(s => {
-                    const opt = document.createElement('option');
-                    opt.value = s.id;
-                    opt.textContent = s.date + ' (' + s.startTime + ' - ' + s.status + ')';
-                    sSelect.appendChild(opt);
-                });
-            } catch(e) { console.error(e); }
-        });
-
-        document.getElementById('btn-load-attendance').onclick = () => {
-            const sessionId = document.getElementById('session-select').value;
-            if (sessionId) AttendanceManager.loadAttendance(sessionId);
-        };
-
-        document.getElementById('btn-save-attendance').onclick = () => {
-            const sessionId = document.getElementById('session-select').value;
-            if (sessionId) AttendanceManager.saveAttendance(sessionId);
-        };
+        AttendanceManager.init();
       });
     </script>
   </main>

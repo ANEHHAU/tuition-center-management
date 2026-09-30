@@ -42,15 +42,17 @@ public class DataSeeder implements CommandLineRunner {
     @Override
     @Transactional
     public void run(String... args) {
-        if (userRepository.existsByUsername("admin")) {
-            log.info(">>> DataSeeder: Admin user already exists. Bỏ qua việc tạo seed data.");
+        if (userRepository.existsByUsername("teacher1")) {
+            log.info(">>> DataSeeder: Dữ liệu mẫu đã tồn tại (teacher1). Bỏ qua seed data.");
             return;
         }
 
         log.info(">>> Bắt đầu tạo dữ liệu Seed cho môi trường DEV...");
 
         // 1. Tạo Users
-        User admin = createUser("admin", "admin123", "System Administrator", null, null, Role.ADMIN);
+        User admin = userRepository.findByUsername("admin").orElseGet(() -> 
+            createUser("admin", "admin123", "System Administrator", null, null, Role.ADMIN)
+        );
 
         User teacher1 = createUser("teacher1", "123456", "Nguyễn Văn An", "an@tuition.com", "0901111111", Role.TEACHER);
         User teacher2 = createUser("teacher2", "123456", "Trần Thị Bình", "binh@tuition.com", "0902222222", Role.TEACHER);
