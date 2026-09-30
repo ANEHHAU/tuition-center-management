@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{layout/main :: layout(~{::main})}">
+<body>
+  <main class="space-y-6">
+    <div class="flex items-center space-x-4">
+      <button onclick="window.history.back()" class="text-gray-500 hover:text-gray-700">
+        &larr; Quay lại
+      </button>
+      <h2 class="text-2xl font-bold text-gray-800">Chi tiết Hóa đơn #<span id="inv-id"></span></h2>
+    </div>
+
+    <div id="error-msg" class="text-red-600 text-sm"></div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      
+      <!-- Thông tin chung -->
+      <div class="lg:col-span-2 space-y-6">
+        <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+          <div class="flex justify-between items-start mb-6">
+            <div>
+              <h3 class="text-lg font-bold text-gray-800">Thông tin Hóa đơn</h3>
+              <p class="text-sm text-gray-500">Học sinh: <span id="inv-student" class="font-medium text-gray-800"></span></p>
+              <p class="text-sm text-gray-500">Kỳ: <span id="inv-period" class="font-medium text-gray-800"></span></p>
+            </div>
+            <div class="text-right">
+              <p class="text-sm text-gray-500">Trạng thái: <span id="inv-status" class="font-bold text-blue-600"></span></p>
+              <span id="inv-doc-status" class="hidden"></span>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-3 gap-4 border-t border-b py-4">
+            <div class="text-center">
+              <p class="text-xs text-gray-500 uppercase">Tổng tiền</p>
+              <p id="inv-total" class="text-xl font-bold text-gray-800"></p>
+            </div>
+            <div class="text-center border-l border-r">
+              <p class="text-xs text-gray-500 uppercase">Đã trả</p>
+              <p id="inv-paid" class="text-xl font-bold text-green-600"></p>
+            </div>
+            <div class="text-center">
+              <p class="text-xs text-gray-500 uppercase">Còn nợ</p>
+              <p id="inv-remain" class="text-xl font-bold text-red-600"></p>
+            </div>
+          </div>
+        </div>
+
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+          <div class="p-4 border-b border-gray-200">
+            <h3 class="text-lg font-bold text-gray-800">Chi tiết các buổi học</h3>
+          </div>
+          <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse">
+              <thead>
+                <tr class="bg-gray-100 text-gray-600 text-sm uppercase tracking-wider border-b">
+                  <th class="px-4 py-3 font-medium">Ngày học</th>
+                  <th class="px-4 py-3 font-medium">Khóa học</th>
+                  <th class="px-4 py-3 font-medium">Điểm danh</th>
+                  <th class="px-4 py-3 font-medium">Đơn giá</th>
+                </tr>
+              </thead>
+              <tbody id="details-tbody">
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Thanh toán -->
+      <div class="space-y-6">
+        <div class="bg-blue-50 p-6 rounded-xl shadow-sm border border-blue-200 text-blue-900">
+          <h3 class="text-lg font-bold mb-4">Thông tin chuyển khoản</h3>
+          <p class="text-sm mb-2">Ngân hàng: <strong>Vietcombank</strong></p>
+          <p class="text-sm mb-2">Số tài khoản: <strong>0123456789</strong></p>
+          <p class="text-sm mb-4">Tên tài khoản: <strong>NGUYEN VAN A</strong></p>
+          <p class="text-sm italic">Nội dung chuyển khoản: <br><strong>Thanh toan Hoc phi HD <span id="payment-note-id"></span></strong></p>
+          <hr class="my-4 border-blue-200">
+          <button onclick="alert('Tính năng này sẽ gửi thông báo cho giáo viên/admin xác nhận. Đang cập nhật API.')" class="w-full px-4 py-2 bg-blue-600 text-white rounded font-medium hover:bg-blue-700">Tôi đã chuyển khoản</button>
+        </div>
+      </div>
+
+    </div>
+
+    <script th:src="@{/js/invoice.js}"></script>
+    <script>
+      document.addEventListener("DOMContentLoaded", function() {
+        window.authService.requireAuth(['STUDENT']);
+        const urlParams = new URLSearchParams(window.location.search);
+        const id = urlParams.get('id');
+        
+        InvoiceManager.init('STUDENT');
+        
+        if (id) {
+            document.getElementById('payment-note-id').textContent = id;
+            InvoiceManager.loadInvoiceDetail(id);
+        }
+      });
+    </script>
+  </main>
+</body>
+</html>

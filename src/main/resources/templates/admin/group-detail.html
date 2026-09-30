@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{layout/main :: layout(~{::main})}">
+<body>
+  <main class="space-y-6">
+    <div class="flex items-center space-x-4">
+      <button onclick="window.history.back()" class="text-gray-500 hover:text-gray-700">
+        &larr; Quay lại
+      </button>
+      <h2 class="text-2xl font-bold text-gray-800">Chi tiết Nhóm: <span id="group-name"></span></h2>
+    </div>
+
+    <div id="error-msg" class="text-red-600 text-sm"></div>
+
+    <!-- Public Link Section -->
+    <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+      <h3 class="text-lg font-bold text-gray-800 mb-4">Chia sẻ Lịch học (Public Link)</h3>
+      <p class="text-sm text-gray-600 mb-4">Tạo link chia sẻ lịch học cho phụ huynh/học sinh mà không cần đăng nhập (chỉ xem ngày giờ, không xem danh sách hay học phí).</p>
+      
+      <div id="public-link-section" class="hidden mb-4 p-4 bg-gray-50 rounded border border-gray-200 flex flex-col sm:flex-row justify-between items-center space-y-3 sm:space-y-0">
+        <span id="public-link-url" class="text-blue-600 font-mono text-sm break-all w-full sm:w-auto"></span>
+        <div class="flex space-x-2 shrink-0 w-full sm:w-auto">
+          <button onclick="GroupManager.copyLink()" class="flex-1 sm:flex-none px-3 py-1.5 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 text-sm">Copy Link</button>
+          <a id="public-link-href" href="#" target="_blank" class="flex-1 sm:flex-none px-3 py-1.5 bg-blue-100 text-blue-700 rounded hover:bg-blue-200 text-sm text-center">Mở</a>
+        </div>
+      </div>
+
+      <div class="flex space-x-3">
+        <button id="btn-regen-link" class="px-4 py-2 bg-blue-600 text-white rounded text-sm hover:bg-blue-700">Tạo / Reset Link</button>
+        <button id="btn-revoke-link" class="px-4 py-2 bg-red-100 text-red-700 rounded text-sm hover:bg-red-200">Hủy Link</button>
+      </div>
+    </div>
+
+    <!-- Danh sách học sinh -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+      <div class="p-4 border-b border-gray-200 flex flex-col sm:flex-row justify-between items-center space-y-3 sm:space-y-0">
+        <h3 class="text-lg font-bold text-gray-800">Danh sách Học sinh</h3>
+        <div class="flex space-x-2 w-full sm:w-auto">
+          <input type="number" id="add-student-id" placeholder="Nhập ID học sinh..." class="w-full sm:w-48 px-3 py-1.5 border rounded focus:ring-blue-500 focus:border-blue-500 text-sm">
+          <button id="btn-add-student" class="px-4 py-1.5 bg-green-600 text-white rounded text-sm hover:bg-green-700 shrink-0">Thêm</button>
+        </div>
+      </div>
+      
+      <div class="overflow-x-auto">
+        <table class="w-full text-left border-collapse">
+          <thead>
+            <tr class="bg-gray-100 text-gray-600 text-sm uppercase tracking-wider border-b">
+              <th class="px-4 py-3 font-medium">ID HS</th>
+              <th class="px-4 py-3 font-medium">Tên Học Sinh</th>
+              <th class="px-4 py-3 font-medium">Ngày vào</th>
+              <th class="px-4 py-3 font-medium">Trạng thái</th>
+              <th class="px-4 py-3 font-medium">Hành động</th>
+            </tr>
+          </thead>
+          <tbody id="students-tbody">
+            <!-- Render by JS -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <script th:src="@{/js/group.js}"></script>
+    <script>
+      document.addEventListener("DOMContentLoaded", async function() {
+        window.authService.requireAuth(['ADMIN']);
+        GroupManager.init('ADMIN');
+        const urlParams = new URLSearchParams(window.location.search);
+        const groupId = urlParams.get('id');
+        
+        if (groupId) {
+          try {
+            const group = await apiFetch('/api/admin/groups/' + groupId);
+            document.getElementById('group-name').textContent = group.name;
+            if (group.publicToken) {
+              const url = window.location.origin + '/public/schedule/' + group.publicToken;
+              document.getElementById('public-link-url').textContent = url;
+              document.getElementById('public-link-href').href = '/public/schedule/' + group.publicToken;
+              document.getElementById('public-link-section').classList.remove('hidden');
+            }
+          } catch(e) {}
+          
+          GroupManager.loadStudents(groupId);
+          
+          document.getElementById('btn-regen-link').onclick = () => GroupManager.regenerateLink(groupId);
+          document.getElementById('btn-revoke-link').onclick = () => GroupManager.revokeLink(groupId);
+          document.getElementById('btn-add-student').onclick = () => GroupManager.addStudent(groupId);
+        }
+      });
+    </script>
+  </main>
+</body>
+</html>

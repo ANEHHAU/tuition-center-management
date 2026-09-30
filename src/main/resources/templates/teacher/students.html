@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{layout/main :: layout(~{::main})}">
+<body>
+  <main class="space-y-6">
+    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center space-y-4 sm:space-y-0">
+      <h2 class="text-2xl font-bold text-gray-800">Quản lý Học sinh</h2>
+      <button onclick="alert('Tính năng Tạo Học sinh bằng API /api/teacher/students đang được cập nhật giao diện.')" class="px-4 py-2 bg-blue-600 text-white rounded shadow hover:bg-blue-700">Thêm học sinh mới</button>
+    </div>
+
+    <div id="error-msg" class="text-red-600 text-sm"></div>
+
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+      <div class="overflow-x-auto">
+        <table class="w-full text-left border-collapse">
+          <thead>
+            <tr class="bg-gray-100 text-gray-600 text-sm uppercase tracking-wider border-b">
+              <th class="px-4 py-3 font-medium">ID</th>
+              <th class="px-4 py-3 font-medium">Họ Tên</th>
+              <th class="px-4 py-3 font-medium">Username</th>
+              <th class="px-4 py-3 font-medium">Email</th>
+              <th class="px-4 py-3 font-medium">Số điện thoại</th>
+            </tr>
+          </thead>
+          <tbody id="students-tbody">
+            <!-- Render by JS -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <script>
+      document.addEventListener("DOMContentLoaded", async function() {
+        window.authService.requireAuth(['TEACHER']);
+        try {
+            const students = await apiFetch('/api/teacher/students');
+            const tbody = document.getElementById('students-tbody');
+            tbody.innerHTML = students.map(s => `
+                <tr class="border-b hover:bg-gray-50">
+                    <td class="px-4 py-3 text-sm">${s.id}</td>
+                    <td class="px-4 py-3 text-sm font-medium">${s.fullName}</td>
+                    <td class="px-4 py-3 text-sm">${s.username}</td>
+                    <td class="px-4 py-3 text-sm">${s.email || ''}</td>
+                    <td class="px-4 py-3 text-sm">${s.phone || ''}</td>
+                </tr>
+            `).join('');
+        } catch(e) {
+            document.getElementById('error-msg').textContent = e.message;
+        }
+      });
+    </script>
+  </main>
+</body>
+</html>

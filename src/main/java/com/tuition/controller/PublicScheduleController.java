@@ -2,7 +2,9 @@ package com.tuition.controller;
 
 import com.tuition.entity.Group;
 import com.tuition.entity.PublicLinkAccess;
+import com.tuition.entity.Session;
 import com.tuition.repository.PublicLinkAccessRepository;
+import com.tuition.repository.SessionRepository;
 import com.tuition.service.PublicLinkService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -16,6 +18,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * Controller phục vụ xem LỊCH HỌC công khai cho phụ huynh/học sinh không cần đăng nhập.
@@ -28,6 +31,7 @@ public class PublicScheduleController {
 
     private final PublicLinkService publicLinkService;
     private final PublicLinkAccessRepository publicLinkAccessRepository;
+    private final SessionRepository sessionRepository;
 
     @GetMapping("/schedule/{token}")
     public String viewPublicSchedule(
@@ -66,12 +70,17 @@ public class PublicScheduleController {
         model.addAttribute("groupName", group.getName());
         model.addAttribute("courseName", group.getCourse().getName());
 
-        // Danh sách buổi học mẫu cho nhóm
-        List<Map<String, String>> sessions = List.of(
-                Map.of("date", "Thứ Hai, 06/10/2026", "startTime", "18:00", "endTime", "20:00", "room", "Phòng A101", "status", "Sắp diễn ra"),
-                Map.of("date", "Thứ Tư, 08/10/2026", "startTime", "18:00", "endTime", "20:00", "room", "Phòng A101", "status", "Sắp diễn ra"),
-                Map.of("date", "Thứ Sáu, 10/10/2026", "startTime", "18:00", "endTime", "20:00", "room", "Phòng A101", "status", "Sắp diễn ra")
-        );
+        // Lấy danh sách session thật từ DB
+        List<Session> groupSessions = sessionRepository.findByGroupIdOrderByDateAsc(group.getId());
+        
+        List<Map<String, String>> sessions = groupSessions.stream().map(s -> Map.of(
+                "date", s.getDate().toString(),
+                "startTime", s.getStartTime().toString(),
+                "endTime", s.getEndTime().toString(),
+                "room", s.getRoom() != null ? s.getRoom() : "Chưa xếp phòng",
+                "status", s.getStatus().name()
+        )).collect(Collectors.toList());
+        
         model.addAttribute("sessions", sessions);
 
         return "public/schedule-view";

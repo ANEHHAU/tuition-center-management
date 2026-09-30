@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{layout/main :: layout(~{::main})}">
+<body>
+  <main class="space-y-6">
+    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center space-y-4 sm:space-y-0">
+      <h2 class="text-2xl font-bold text-gray-800">Quản lý Hóa đơn</h2>
+    </div>
+
+    <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-200">
+      <div class="grid grid-cols-1 sm:grid-cols-4 gap-4 items-end">
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Tháng</label>
+          <input type="number" id="filter-month" min="1" max="12" class="w-full px-3 py-2 border rounded focus:ring-blue-500 focus:border-blue-500">
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Năm</label>
+          <input type="number" id="filter-year" class="w-full px-3 py-2 border rounded focus:ring-blue-500 focus:border-blue-500">
+        </div>
+        <button id="btn-load-invoices" class="w-full px-4 py-2 bg-gray-800 text-white rounded hover:bg-gray-900">Xem Hóa đơn</button>
+        <button id="btn-gen-invoices" class="w-full px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">Tạo hóa đơn tháng</button>
+      </div>
+      <p class="text-xs text-gray-500 mt-2">Tính năng "Tạo hóa đơn tháng" sẽ tự động tạo/cập nhật hóa đơn cho tất cả học sinh có dữ liệu điểm danh trong tháng đó.</p>
+    </div>
+
+    <div id="error-msg" class="text-red-600 text-sm"></div>
+
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+      <div class="overflow-x-auto">
+        <table class="w-full text-left border-collapse">
+          <thead>
+            <tr class="bg-gray-100 text-gray-600 text-sm uppercase tracking-wider border-b">
+              <th class="px-4 py-3 font-medium">ID</th>
+              <th class="px-4 py-3 font-medium">Học sinh</th>
+              <th class="px-4 py-3 font-medium">Kỳ</th>
+              <th class="px-4 py-3 font-medium">Tổng tiền</th>
+              <th class="px-4 py-3 font-medium">Đã trả</th>
+              <th class="px-4 py-3 font-medium">Trạng thái</th>
+              <th class="px-4 py-3 font-medium">Hành động</th>
+            </tr>
+          </thead>
+          <tbody id="invoices-tbody">
+            <!-- Render by JS -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <script th:src="@{/js/invoice.js}"></script>
+    <script>
+      document.addEventListener("DOMContentLoaded", function() {
+        window.authService.requireAuth(['TEACHER']);
+        InvoiceManager.init('TEACHER');
+        
+        const now = new Date();
+        document.getElementById('filter-month').value = now.getMonth() + 1;
+        document.getElementById('filter-year').value = now.getFullYear();
+
+        document.getElementById('btn-load-invoices').onclick = () => {
+            InvoiceManager.loadInvoices(
+                document.getElementById('filter-month').value,
+                document.getElementById('filter-year').value
+            );
+        };
+
+        document.getElementById('btn-gen-invoices').onclick = () => {
+            // Fake form ids just to use the existing JS function easily
+            // Or better, write custom logic
+            const m = parseInt(document.getElementById('filter-month').value);
+            const y = parseInt(document.getElementById('filter-year').value);
+            if (!m || !y) return alert('Vui lòng nhập tháng năm');
+            
+            apiFetch('/api/teacher/invoices/generate', {
+                method: 'POST',
+                body: JSON.stringify({ month: m, year: y })
+            }).then(() => {
+                alert('Đã tạo/cập nhật hóa đơn thành công!');
+                InvoiceManager.loadInvoices(m, y);
+            }).catch(e => {
+                document.getElementById('error-msg').textContent = e.message;
+            });
+        };
+
+        // Initial load
+        document.getElementById('btn-load-invoices').click();
+      });
+    </script>
+  </main>
+</body>
+</html>

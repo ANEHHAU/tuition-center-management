@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{layout/main :: layout(~{::main})}">
+<body>
+  <main class="space-y-6">
+    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center space-y-4 sm:space-y-0">
+      <h2 class="text-2xl font-bold text-gray-800">Hóa đơn Học phí</h2>
+      <div id="debt-badge" class="px-4 py-2 bg-red-100 text-red-800 rounded font-bold hidden">
+        Tổng nợ hiện tại: <span id="total-debt"></span>
+      </div>
+    </div>
+
+    <div id="error-msg" class="text-red-600 text-sm"></div>
+
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+      <div class="overflow-x-auto">
+        <table class="w-full text-left border-collapse">
+          <thead>
+            <tr class="bg-gray-100 text-gray-600 text-sm uppercase tracking-wider border-b">
+              <th class="px-4 py-3 font-medium">ID</th>
+              <th class="px-4 py-3 font-medium">Bạn</th>
+              <th class="px-4 py-3 font-medium">Kỳ</th>
+              <th class="px-4 py-3 font-medium">Tổng tiền</th>
+              <th class="px-4 py-3 font-medium">Đã trả</th>
+              <th class="px-4 py-3 font-medium">Trạng thái</th>
+              <th class="px-4 py-3 font-medium">Hành động</th>
+            </tr>
+          </thead>
+          <tbody id="invoices-tbody">
+            <!-- Render by JS -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <script th:src="@{/js/invoice.js}"></script>
+    <script>
+      document.addEventListener("DOMContentLoaded", async function() {
+        window.authService.requireAuth(['STUDENT']);
+        InvoiceManager.init('STUDENT');
+        
+        try {
+            const debtRes = await apiFetch('/api/student/invoices/current-debt');
+            if (debtRes && debtRes.totalDebt > 0) {
+                document.getElementById('total-debt').textContent = Number(debtRes.totalDebt).toLocaleString('vi-VN') + 'đ';
+                document.getElementById('debt-badge').classList.remove('hidden');
+            }
+        } catch(e) {}
+
+        InvoiceManager.loadInvoices();
+      });
+    </script>
+  </main>
+</body>
+</html>

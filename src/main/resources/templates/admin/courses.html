@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{layout/main :: layout(~{::main})}">
+<body>
+  <main class="space-y-6">
+    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center space-y-4 sm:space-y-0">
+      <h2 class="text-2xl font-bold text-gray-800">Quản lý Khóa học</h2>
+      <a href="course-form" class="px-4 py-2 bg-blue-600 text-white rounded shadow hover:bg-blue-700">Tạo khóa học mới</a>
+    </div>
+
+    <div id="error-msg" class="text-red-600 text-sm"></div>
+
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+      <div class="overflow-x-auto">
+        <table class="w-full text-left border-collapse">
+          <thead>
+            <tr class="bg-gray-100 text-gray-600 text-sm uppercase tracking-wider border-b">
+              <th class="px-4 py-3 font-medium">ID</th>
+              <th class="px-4 py-3 font-medium">Tên Khóa Học</th>
+              <th class="px-4 py-3 font-medium">Học phí / Buổi</th>
+              <th class="px-4 py-3 font-medium">Trạng thái</th>
+              <th class="px-4 py-3 font-medium">Số Lớp</th>
+              <th class="px-4 py-3 font-medium">Hành động</th>
+            </tr>
+          </thead>
+          <tbody id="courses-tbody">
+            <!-- Render by JS -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <script th:src="@{/js/course.js}"></script>
+    <script>
+      document.addEventListener("DOMContentLoaded", function() {
+        window.authService.requireAuth(['ADMIN']);
+        CourseManager.init('ADMIN');
+      });
+    </script>
+  </main>
+</body>
+</html>

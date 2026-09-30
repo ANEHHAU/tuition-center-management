@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{layout/main :: layout(~{::main})}">
+<body>
+  <main class="space-y-6">
+    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center space-y-4 sm:space-y-0">
+      <h2 class="text-2xl font-bold text-gray-800">Quản lý Người dùng (Toàn hệ thống)</h2>
+      <button onclick="alert('Tính năng Tạo Người dùng bằng API /api/admin/users đang được cập nhật giao diện.')" class="px-4 py-2 bg-blue-600 text-white rounded shadow hover:bg-blue-700">Tạo người dùng mới</button>
+    </div>
+
+    <div id="error-msg" class="text-red-600 text-sm"></div>
+
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+      <div class="overflow-x-auto">
+        <table class="w-full text-left border-collapse">
+          <thead>
+            <tr class="bg-gray-100 text-gray-600 text-sm uppercase tracking-wider border-b">
+              <th class="px-4 py-3 font-medium">ID</th>
+              <th class="px-4 py-3 font-medium">Họ Tên</th>
+              <th class="px-4 py-3 font-medium">Username</th>
+              <th class="px-4 py-3 font-medium">Role</th>
+              <th class="px-4 py-3 font-medium">Trạng thái</th>
+            </tr>
+          </thead>
+          <tbody id="users-tbody">
+            <!-- Render by JS -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <script>
+      document.addEventListener("DOMContentLoaded", async function() {
+        window.authService.requireAuth(['ADMIN']);
+        try {
+            const users = await apiFetch('/api/admin/users');
+            const tbody = document.getElementById('users-tbody');
+            tbody.innerHTML = users.map(u => `
+                <tr class="border-b hover:bg-gray-50">
+                    <td class="px-4 py-3 text-sm">${u.id}</td>
+                    <td class="px-4 py-3 text-sm font-medium">${u.fullName}</td>
+                    <td class="px-4 py-3 text-sm">${u.username}</td>
+                    <td class="px-4 py-3 text-sm">
+                        <span class="px-2 py-1 rounded-full text-xs font-medium ${u.role === 'ADMIN' ? 'bg-purple-100 text-purple-800' : u.role === 'TEACHER' ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-800'}">${u.role}</span>
+                    </td>
+                    <td class="px-4 py-3 text-sm">${u.status}</td>
+                </tr>
+            `).join('');
+        } catch(e) {
+            document.getElementById('error-msg').textContent = e.message;
+        }
+      });
+    </script>
+  </main>
+</body>
+</html>
