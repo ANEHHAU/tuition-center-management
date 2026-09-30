@@ -35,31 +35,34 @@ public class CloudinaryFileStorageService implements FileStorageService {
         validateFile(file);
 
         try {
-            Transformation transformation = new Transformation()
+            // Chỉ crop/resize ảnh trước khi lưu để tiết kiệm dung lượng
+            Transformation incomingTransformation = new Transformation()
                     .width(type.getWidth())
                     .height(type.getHeight())
-                    .crop("fill")
-                    .quality("auto")
-                    .fetchFormat("auto");
+                    .crop("fill");
 
             Map<String, Object> params = ObjectUtils.asMap(
                     "folder", "tuition/" + type.name().toLowerCase(),
                     "resource_type", "image",
-                    "transformation", transformation,
+                    "transformation", incomingTransformation,
                     "overwrite", false,
                     "unique_filename", true
             );
 
             Map<?, ?> uploadResult = cloudinary.uploader().upload(file.getBytes(), params);
-
-            String secureUrl = (String) uploadResult.get("secure_url");
             String publicId = (String) uploadResult.get("public_id");
 
+            // Tạo Delivery URL với f_auto, q_auto để load nhanh trên web
+            String optimizedUrl = cloudinary.url()
+                    .secure(true)
+                    .transformation(new Transformation().fetchFormat("auto").quality("auto"))
+                    .generate(publicId);
+
             Map<String, String> response = new HashMap<>();
-            response.put("url", secureUrl);
+            response.put("url", optimizedUrl);
             response.put("publicId", publicId);
 
-            log.info("Uploaded file successfully to Cloudinary: publicId={}, url={}", publicId, secureUrl);
+            log.info("Uploaded file successfully to Cloudinary: publicId={}, optimizedUrl={}", publicId, optimizedUrl);
             return response;
 
         } catch (Exception e) {

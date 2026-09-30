@@ -46,6 +46,9 @@ const CourseManager = {
             description: form.description.value,
             status: form.status.value
         };
+        if (form.teacherId) {
+            body.teacherId = parseInt(form.teacherId.value);
+        }
         try {
             if (id) {
                 await apiFetch(this.apiBase + '/' + id, { method: 'PUT', body: JSON.stringify(body) });
@@ -79,6 +82,9 @@ const CourseManager = {
             form.pricePerSession.value = c.pricePerSession;
             form.description.value = c.description || '';
             form.status.value = c.status || 'ACTIVE';
+            if (form.teacherId && c.teacherId) {
+                form.teacherId.value = c.teacherId;
+            }
         } catch (e) {
             document.getElementById('error-msg').textContent = e.message;
         }

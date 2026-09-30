@@ -14,6 +14,8 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
+
 /**
  * Xử lý ngoại lệ tập trung cho toàn bộ ứng dụng REST API.
  */
@@ -92,6 +94,16 @@ public class GlobalExceptionHandler {
         Map<String, String> response = new HashMap<>();
         response.put("message", "Tên đăng nhập hoặc Email đã tồn tại trong hệ thống");
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+    }
+
+    /**
+     * Xử lý lỗi file upload vượt quá kích thước cho phép -> 413
+     */
+    @ExceptionHandler(MaxUploadSizeExceededException.class)
+    public ResponseEntity<Map<String, String>> handleMaxUploadSize(MaxUploadSizeExceededException ex) {
+        Map<String, String> response = new HashMap<>();
+        response.put("message", "File upload vượt quá kích thước cho phép (tối đa 2MB)");
+        return ResponseEntity.status(HttpStatus.PAYLOAD_TOO_LARGE).body(response);
     }
 
     /**

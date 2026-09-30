@@ -22,7 +22,7 @@
     <nav class="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
       
       <!-- MENU ADMIN -->
-      <div sec:authorize="hasRole('ADMIN')" class="space-y-1">
+      <div id="menu-admin" class="space-y-1 hidden">
         <div class="px-3 py-2 text-xs font-semibold text-gray-400 uppercase tracking-wider">QUẢN TRỊ</div>
         <a href="/admin" class="flex items-center px-3 py-2 rounded-md text-sm text-gray-300 hover:bg-gray-800 hover:text-white">🏠 Trang chủ</a>
         <a href="/admin/users" class="flex items-center px-3 py-2 rounded-md text-sm text-gray-300 hover:bg-gray-800 hover:text-white">👥 Quản lý người dùng</a>
@@ -35,7 +35,7 @@
       </div>
 
       <!-- MENU TEACHER -->
-      <div sec:authorize="hasRole('TEACHER')" class="space-y-1">
+      <div id="menu-teacher" class="space-y-1 hidden">
         <div class="px-3 py-2 text-xs font-semibold text-gray-400 uppercase tracking-wider">GIÁO VIÊN</div>
         <a href="/teacher" class="flex items-center px-3 py-2 rounded-md text-sm text-gray-300 hover:bg-gray-800 hover:text-white">🏠 Trang chủ</a>
         <a href="/teacher/courses" class="flex items-center px-3 py-2 rounded-md text-sm text-gray-300 hover:bg-gray-800 hover:text-white">📚 Khóa học</a>
@@ -49,7 +49,7 @@
       </div>
 
       <!-- MENU STUDENT -->
-      <div sec:authorize="hasRole('STUDENT')" class="space-y-1">
+      <div id="menu-student" class="space-y-1 hidden">
         <div class="px-3 py-2 text-xs font-semibold text-gray-400 uppercase tracking-wider">HỌC SINH</div>
         <a href="/student" class="flex items-center px-3 py-2 rounded-md text-sm text-gray-300 hover:bg-gray-800 hover:text-white">🏠 Trang chủ</a>
         <a href="/student/schedule" class="flex items-center px-3 py-2 rounded-md text-sm text-gray-300 hover:bg-gray-800 hover:text-white">📅 Lịch học</a>

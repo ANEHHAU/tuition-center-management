@@ -43,9 +43,21 @@ document.addEventListener("DOMContentLoaded", function () {
 
     menuLinks.forEach(link => {
         const href = link.getAttribute("href");
-        if (href && (currentPath === href || (href !== "/" && currentPath.startsWith(href)))) {
-            link.classList.add("bg-blue-600", "text-white", "font-semibold");
-            link.classList.remove("text-gray-300", "hover:bg-gray-700");
+        if (href) {
+            let isActive = false;
+            // Exact match
+            if (currentPath === href) {
+                isActive = true;
+            } 
+            // Prefix match (nhưng bỏ qua các root url của role)
+            else if (href !== '/' && href !== '/admin' && href !== '/teacher' && href !== '/student' && currentPath.startsWith(href)) {
+                isActive = true;
+            }
+
+            if (isActive) {
+                link.classList.add("bg-blue-600", "text-white", "font-semibold");
+                link.classList.remove("text-gray-300", "hover:bg-gray-700");
+            }
         }
     });
 
@@ -60,6 +72,18 @@ document.addEventListener("DOMContentLoaded", function () {
             if (headerName) headerName.textContent = user.fullName || user.username;
             if (headerRole) headerRole.textContent = user.role;
             if (headerAvatar && user.avatarUrl) headerAvatar.src = user.avatarUrl;
+
+            // Hiển thị menu sidebar tương ứng với Role
+            if (user.role === 'ADMIN') {
+                const el = document.getElementById('menu-admin');
+                if (el) el.classList.remove('hidden');
+            } else if (user.role === 'TEACHER') {
+                const el = document.getElementById('menu-teacher');
+                if (el) el.classList.remove('hidden');
+            } else if (user.role === 'STUDENT') {
+                const el = document.getElementById('menu-student');
+                if (el) el.classList.remove('hidden');
+            }
         }
     }
 });

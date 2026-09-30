@@ -1,5 +1,7 @@
 server:
   port: 8080
+  tomcat:
+    max-swallow-size: 10MB
 
 spring:
   application:
@@ -23,8 +25,9 @@ spring:
 
   servlet:
     multipart:
-      max-file-size: 2MB
-      max-request-size: 2MB
+      max-file-size: 5MB
+      max-request-size: 5MB
+      resolve-lazily: true
 
 jwt:
   secret: 9a8f7e6d5c4b3a210987654321fedcba9a8f7e6d5c4b3a210987654321fedcba
