@@ -47,6 +47,9 @@ public class ViewPageController {
     @GetMapping("/admin/reports")
     public String adminReports() { return "admin/reports"; }
 
+    @GetMapping("/admin/audit-log")
+    public String adminAuditLog() { return "admin/audit-log"; }
+
     // ==================== TEACHER ====================
     @GetMapping("/teacher/courses")
     public String teacherCourses() { return "teacher/courses"; }

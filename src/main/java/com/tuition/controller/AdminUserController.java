@@ -1,20 +1,22 @@
 package com.tuition.controller;
 
+import com.tuition.dto.BaseSearchRequest;
+import com.tuition.dto.PageResponse;
 import com.tuition.dto.RegisterRequest;
+import com.tuition.dto.UpdateProfileRequest;
+import com.tuition.dto.UpdateUserRequest;
 import com.tuition.dto.UserResponse;
 import com.tuition.entity.Role;
-import com.tuition.entity.User;
 import com.tuition.entity.UserStatus;
-import com.tuition.exception.BusinessException;
-import com.tuition.repository.UserRepository;
-import com.tuition.service.AuthService;
+import com.tuition.service.AdminUserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
+import java.security.Principal;
+import java.util.Map;
 
 /**
  * Controller dành riêng cho Quản trị viên (ADMIN) quản lý người dùng trong hệ thống.
@@ -24,65 +26,58 @@ import java.util.List;
 @RequiredArgsConstructor
 public class AdminUserController {
 
-    private final AuthService authService;
-    private final UserRepository userRepository;
+    private final AdminUserService adminUserService;
 
-    /**
-     * Admin tạo tài khoản mới (cho phép tạo bất kỳ role nào: ADMIN, TEACHER, STUDENT)
-     */
+    @GetMapping
+    public ResponseEntity<PageResponse<UserResponse>> searchUsers(
+            @ModelAttribute BaseSearchRequest req,
+            @RequestParam(required = false) Role role,
+            @RequestParam(required = false) UserStatus status
+    ) {
+        return ResponseEntity.ok(adminUserService.searchUsers(req, role, status));
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<UserResponse> getUser(@PathVariable Long id) {
+        return ResponseEntity.ok(adminUserService.getUserById(id));
+    }
+
     @PostMapping
     public ResponseEntity<UserResponse> createUser(@Valid @RequestBody RegisterRequest req) {
-        UserResponse response = authService.createByAdmin(req);
-        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+        return ResponseEntity.status(HttpStatus.CREATED).body(adminUserService.createUser(req));
     }
 
-    /**
-     * Admin lấy danh sách người dùng (có thể lọc theo role)
-     */
-    @GetMapping
-    public ResponseEntity<List<UserResponse>> getUsers(@RequestParam(required = false) Role role) {
-        List<User> users;
-        if (role != null) {
-            users = userRepository.findByRole(role);
-        } else {
-            users = userRepository.findAll();
-        }
-
-        List<UserResponse> responses = users.stream()
-                .map(UserResponse::fromEntity)
-                .toList();
-
-        return ResponseEntity.ok(responses);
+    @PutMapping("/{id}")
+    public ResponseEntity<UserResponse> updateUser(@PathVariable Long id, @Valid @RequestBody UpdateUserRequest req) {
+        return ResponseEntity.ok(adminUserService.updateUser(id, req));
     }
 
-    /**
-     * Cập nhật trạng thái người dùng (ACTIVE / INACTIVE)
-     */
+    @PutMapping("/{id}/role")
+    public ResponseEntity<UserResponse> updateRole(@PathVariable Long id, @RequestParam Role role) {
+        return ResponseEntity.ok(adminUserService.updateRole(id, role));
+    }
+
     @PutMapping("/{id}/status")
     public ResponseEntity<UserResponse> updateStatus(
             @PathVariable Long id,
-            @RequestParam UserStatus status
+            @RequestParam UserStatus status,
+            Principal principal
     ) {
-        User user = userRepository.findById(id)
-                .orElseThrow(() -> new BusinessException("Không tìm thấy người dùng có ID: " + id));
-
-        user.setStatus(status);
-        User updatedUser = userRepository.save(user);
-
-        return ResponseEntity.ok(UserResponse.fromEntity(updatedUser));
+        return ResponseEntity.ok(adminUserService.changeStatus(id, status, principal.getName()));
     }
 
-    /**
-     * Xóa mềm người dùng (Soft Delete: đổi status thành INACTIVE)
-     */
+    @PutMapping("/{id}/reset-password")
+    public ResponseEntity<Map<String, String>> resetPassword(
+            @PathVariable Long id,
+            @RequestBody Map<String, String> body
+    ) {
+        adminUserService.resetPassword(id, body.get("newPassword"));
+        return ResponseEntity.ok(Map.of("message", "Reset mật khẩu thành công"));
+    }
+
     @DeleteMapping("/{id}")
-    public ResponseEntity<UserResponse> softDeleteUser(@PathVariable Long id) {
-        User user = userRepository.findById(id)
-                .orElseThrow(() -> new BusinessException("Không tìm thấy người dùng có ID: " + id));
-
-        user.setStatus(UserStatus.INACTIVE);
-        User updatedUser = userRepository.save(user);
-
-        return ResponseEntity.ok(UserResponse.fromEntity(updatedUser));
+    public ResponseEntity<Map<String, String>> softDeleteUser(@PathVariable Long id, Principal principal) {
+        adminUserService.softDelete(id, principal.getName());
+        return ResponseEntity.ok(Map.of("message", "Xóa người dùng thành công"));
     }
 }

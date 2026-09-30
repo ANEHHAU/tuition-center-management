@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/main :: layout(~{::div})}">
+<head>
+    <title>Nhật ký hệ thống (Audit Log) - Admin</title>
+</head>
+<body>
+
+<div class="space-y-6">
+    <div class="flex justify-between items-center">
+        <h2 class="text-2xl font-bold text-gray-800">Nhật ký Hệ thống (Audit Log)</h2>
+    </div>
+
+    <!-- Filters & Search -->
+    <div class="bg-white p-4 rounded-lg shadow-sm border border-gray-100 flex flex-col md:flex-row gap-4 items-end">
+        <div class="flex-1 min-w-[200px]">
+            <label class="block text-sm font-medium text-gray-700 mb-1">Loại Entity</label>
+            <select id="filterEntityType" class="w-full border border-gray-300 rounded-md py-2 px-3 text-sm focus:ring-blue-500 focus:border-blue-500" onchange="window.ListHelper.setFilter('entityType', this.value)">
+                <option value="">Tất cả</option>
+                <option value="USER">User</option>
+                <option value="COURSE">Course</option>
+                <option value="GROUP">Group</option>
+                <option value="SESSION">Session</option>
+            </select>
+        </div>
+        
+        <div class="flex-1 min-w-[200px]">
+            <label class="block text-sm font-medium text-gray-700 mb-1">Từ ngày</label>
+            <input type="datetime-local" id="filterFrom" class="w-full border border-gray-300 rounded-md py-2 px-3 text-sm focus:ring-blue-500 focus:border-blue-500" onchange="window.ListHelper.setFilter('from', this.value ? this.value + ':00' : '')">
+        </div>
+        
+        <div class="flex-1 min-w-[200px]">
+            <label class="block text-sm font-medium text-gray-700 mb-1">Đến ngày</label>
+            <input type="datetime-local" id="filterTo" class="w-full border border-gray-300 rounded-md py-2 px-3 text-sm focus:ring-blue-500 focus:border-blue-500" onchange="window.ListHelper.setFilter('to', this.value ? this.value + ':00' : '')">
+        </div>
+        
+        <div>
+            <button onclick="window.ListHelper.load()" class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700">Lọc</button>
+        </div>
+    </div>
+
+    <!-- Data Table -->
+    <div class="bg-white rounded-lg shadow overflow-hidden border border-gray-200">
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Thời gian</th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tài khoản</th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Hành động</th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Loại/ID</th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/3">Dữ liệu thay đổi</th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">IP</th>
+                    </tr>
+                </thead>
+                <tbody id="tableBody" class="bg-white divide-y divide-gray-200">
+                    <!-- Dữ liệu render bằng JS -->
+                </tbody>
+            </table>
+        </div>
+        <div th:replace="~{layout/fragments/pagination :: pagination}"></div>
+    </div>
+</div>
+
+<script src="/js/admin/audit-log.js"></script>
+</body>
+</html>

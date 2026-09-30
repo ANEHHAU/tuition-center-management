@@ -1,91 +1,70 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" th:replace="~{layout/main :: layout(~{::main})}">
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/main :: layout(~{::div})}">
+<head><title>Chi tiết Nhóm học - Admin</title></head>
 <body>
-  <main class="space-y-6">
-    <div class="flex items-center space-x-4">
-      <button onclick="window.history.back()" class="text-gray-500 hover:text-gray-700">
-        &larr; Quay lại
-      </button>
-      <h2 class="text-2xl font-bold text-gray-800">Chi tiết Nhóm: <span id="group-name"></span></h2>
-    </div>
-
-    <div id="error-msg" class="text-red-600 text-sm"></div>
-
-    <!-- Public Link Section -->
-    <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
-      <h3 class="text-lg font-bold text-gray-800 mb-4">Chia sẻ Lịch học (Public Link)</h3>
-      <p class="text-sm text-gray-600 mb-4">Tạo link chia sẻ lịch học cho phụ huynh/học sinh mà không cần đăng nhập (chỉ xem ngày giờ, không xem danh sách hay học phí).</p>
-      
-      <div id="public-link-section" class="hidden mb-4 p-4 bg-gray-50 rounded border border-gray-200 flex flex-col sm:flex-row justify-between items-center space-y-3 sm:space-y-0">
-        <span id="public-link-url" class="text-blue-600 font-mono text-sm break-all w-full sm:w-auto"></span>
-        <div class="flex space-x-2 shrink-0 w-full sm:w-auto">
-          <button onclick="GroupManager.copyLink()" class="flex-1 sm:flex-none px-3 py-1.5 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 text-sm">Copy Link</button>
-          <a id="public-link-href" href="#" target="_blank" class="flex-1 sm:flex-none px-3 py-1.5 bg-blue-100 text-blue-700 rounded hover:bg-blue-200 text-sm text-center">Mở</a>
+<div class="space-y-6">
+    <!-- Header -->
+    <div class="flex justify-between items-center">
+        <div>
+            <a href="/admin/groups" class="text-sm text-blue-600 hover:underline">← Quay lại danh sách</a>
+            <h2 id="groupTitle" class="text-2xl font-bold text-gray-800 mt-1">Chi tiết Nhóm học</h2>
         </div>
-      </div>
-
-      <div class="flex space-x-3">
-        <button id="btn-regen-link" class="px-4 py-2 bg-blue-600 text-white rounded text-sm hover:bg-blue-700">Tạo / Reset Link</button>
-        <button id="btn-revoke-link" class="px-4 py-2 bg-red-100 text-red-700 rounded text-sm hover:bg-red-200">Hủy Link</button>
-      </div>
-    </div>
-
-    <!-- Danh sách học sinh -->
-    <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-      <div class="p-4 border-b border-gray-200 flex flex-col sm:flex-row justify-between items-center space-y-3 sm:space-y-0">
-        <h3 class="text-lg font-bold text-gray-800">Danh sách Học sinh</h3>
-        <div class="flex space-x-2 w-full sm:w-auto">
-          <input type="number" id="add-student-id" placeholder="Nhập ID học sinh..." class="w-full sm:w-48 px-3 py-1.5 border rounded focus:ring-blue-500 focus:border-blue-500 text-sm">
-          <button id="btn-add-student" class="px-4 py-1.5 bg-green-600 text-white rounded text-sm hover:bg-green-700 shrink-0">Thêm</button>
+        <div class="flex gap-2">
+            <a id="editGroupBtn" href="#" class="bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded-md text-sm font-medium transition">Sửa thông tin</a>
         </div>
-      </div>
-      
-      <div class="overflow-x-auto">
-        <table class="w-full text-left border-collapse">
-          <thead>
-            <tr class="bg-gray-100 text-gray-600 text-sm uppercase tracking-wider border-b">
-              <th class="px-4 py-3 font-medium">ID HS</th>
-              <th class="px-4 py-3 font-medium">Tên Học Sinh</th>
-              <th class="px-4 py-3 font-medium">Ngày vào</th>
-              <th class="px-4 py-3 font-medium">Trạng thái</th>
-              <th class="px-4 py-3 font-medium">Hành động</th>
-            </tr>
-          </thead>
-          <tbody id="students-tbody">
-            <!-- Render by JS -->
-          </tbody>
-        </table>
-      </div>
     </div>
 
-    <script th:src="@{/js/group.js}"></script>
-    <script>
-      document.addEventListener("DOMContentLoaded", async function() {
-        window.authService.requireAuth(['ADMIN']);
-        GroupManager.init('ADMIN');
-        const urlParams = new URLSearchParams(window.location.search);
-        const groupId = urlParams.get('id');
-        
-        if (groupId) {
-          try {
-            const group = await apiFetch('/api/admin/groups/' + groupId);
-            document.getElementById('group-name').textContent = group.name;
-            if (group.publicToken) {
-              const url = window.location.origin + '/public/schedule/' + group.publicToken;
-              document.getElementById('public-link-url').textContent = url;
-              document.getElementById('public-link-href').href = '/public/schedule/' + group.publicToken;
-              document.getElementById('public-link-section').classList.remove('hidden');
-            }
-          } catch(e) {}
-          
-          GroupManager.loadStudents(groupId);
-          
-          document.getElementById('btn-regen-link').onclick = () => GroupManager.regenerateLink(groupId);
-          document.getElementById('btn-revoke-link').onclick = () => GroupManager.revokeLink(groupId);
-          document.getElementById('btn-add-student').onclick = () => GroupManager.addStudent(groupId);
-        }
-      });
-    </script>
-  </main>
+    <!-- Group Info Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div class="bg-white p-4 rounded-lg shadow-sm border">
+            <p class="text-xs text-gray-500 uppercase font-medium">Khóa học</p>
+            <p id="infoCourseName" class="text-lg font-semibold text-gray-800 mt-1">-</p>
+        </div>
+        <div class="bg-white p-4 rounded-lg shadow-sm border">
+            <p class="text-xs text-gray-500 uppercase font-medium">Giáo viên</p>
+            <p id="infoTeacherName" class="text-lg font-semibold text-gray-800 mt-1">-</p>
+        </div>
+        <div class="bg-white p-4 rounded-lg shadow-sm border">
+            <p class="text-xs text-gray-500 uppercase font-medium">Trạng thái / Số HS</p>
+            <p id="infoStatusCount" class="text-lg font-semibold text-gray-800 mt-1">-</p>
+        </div>
+    </div>
+
+    <!-- Public Link -->
+    <div class="bg-white p-4 rounded-lg shadow-sm border space-y-3">
+        <h3 class="text-lg font-semibold text-gray-800">🔗 Public Link (Liên kết đăng ký công khai)</h3>
+        <div class="flex flex-col sm:flex-row gap-2 items-start sm:items-center">
+            <input id="publicLinkUrl" type="text" readonly class="flex-1 w-full border border-gray-300 rounded-md py-2 px-3 text-sm bg-gray-50 text-gray-700">
+            <button onclick="copyPublicLink()" class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded-md text-sm font-medium">📋 Copy</button>
+            <button onclick="regenerateLink()" class="bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-2 rounded-md text-sm font-medium">🔄 Tạo lại</button>
+            <button onclick="revokeLink()" class="bg-red-500 hover:bg-red-600 text-white px-3 py-2 rounded-md text-sm font-medium">🚫 Thu hồi</button>
+        </div>
+    </div>
+
+    <!-- Danh sách HS trong nhóm -->
+    <div class="bg-white rounded-lg shadow overflow-hidden border border-gray-200">
+        <div class="p-4 border-b flex justify-between items-center">
+            <h3 class="text-lg font-semibold text-gray-800">📚 Học sinh trong nhóm</h3>
+            <button onclick="openAddStudentModal()" class="bg-green-600 hover:bg-green-700 text-white px-3 py-2 rounded-md text-sm font-medium">+ Thêm HS</button>
+        </div>
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase w-16">STT</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Họ tên</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Email</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">SĐT</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Ngày tham gia</th>
+                        <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Hành động</th>
+                    </tr>
+                </thead>
+                <tbody id="studentTableBody" class="bg-white divide-y divide-gray-200"></tbody>
+            </table>
+        </div>
+    </div>
+</div>
+<script src="/js/admin/group-detail.js"></script>
 </body>
 </html>

@@ -14,6 +14,8 @@ import java.util.Optional;
 @Repository
 public interface EnrollmentRepository extends JpaRepository<Enrollment, Long> {
 
+    List<Enrollment> findByGroupId(Long groupId);
+
     List<Enrollment> findByGroupIdAndStatus(Long groupId, EnrollmentStatus status);
 
     List<Enrollment> findByStudentIdAndStatus(Long studentId, EnrollmentStatus status);
