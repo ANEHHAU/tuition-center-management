@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{layout/main :: layout(~{::content})}">
+<head>
+  <title>Dashboard Học Sinh</title>
+</head>
+<body>
+  <div th:fragment="content">
+    <div class="mb-6 flex justify-between items-center">
+      <h1 class="text-2xl font-bold text-gray-800">Tổng quan học tập</h1>
+    </div>
+
+    <!-- Alert Nợ -->
+    <div id="debtAlert" class="hidden mb-6 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl shadow-sm flex items-start space-x-3">
+      <svg class="h-6 w-6 flex-shrink-0 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+      </svg>
+      <div>
+        <h3 class="font-bold">Bạn đang có hóa đơn chưa thanh toán!</h3>
+        <p class="text-sm mt-1">Vui lòng kiểm tra mục Hóa đơn để xem chi tiết và thanh toán đúng hạn. Tổng nợ hiện tại: <span id="currentDebtAmount" class="font-bold">0 ₫</span></p>
+      </div>
+    </div>
+
+    <!-- Stats Grid -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+      <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100 flex items-center space-x-4">
+        <div class="p-3 bg-blue-100 text-blue-600 rounded-lg">
+          <i class="fas fa-book text-xl"></i>
+        </div>
+        <div>
+          <p class="text-sm text-gray-500 font-medium">Khóa học</p>
+          <p class="text-2xl font-bold text-gray-800" id="totalCourses">0</p>
+        </div>
+      </div>
+      <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100 flex items-center space-x-4">
+        <div class="p-3 bg-indigo-100 text-indigo-600 rounded-lg">
+          <i class="fas fa-users text-xl"></i>
+        </div>
+        <div>
+          <p class="text-sm text-gray-500 font-medium">Nhóm đang học</p>
+          <p class="text-2xl font-bold text-gray-800" id="totalGroups">0</p>
+        </div>
+      </div>
+      <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100 flex items-center space-x-4">
+        <div class="p-3 bg-green-100 text-green-600 rounded-lg">
+          <i class="fas fa-check-circle text-xl"></i>
+        </div>
+        <div>
+          <p class="text-sm text-gray-500 font-medium">Số buổi đã tham gia</p>
+          <p class="text-2xl font-bold text-gray-800" id="totalSessions">0</p>
+        </div>
+      </div>
+      <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100 flex items-center space-x-4">
+        <div class="p-3 bg-yellow-100 text-yellow-600 rounded-lg">
+          <i class="fas fa-file-invoice-dollar text-xl"></i>
+        </div>
+        <div>
+          <p class="text-sm text-gray-500 font-medium">Hóa đơn mới</p>
+          <p class="text-2xl font-bold text-gray-800" id="unreadInvoices">0</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <!-- Lịch học hôm nay -->
+      <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+        <h2 class="text-lg font-bold text-gray-800 mb-4 flex items-center"><i class="fas fa-calendar-day text-blue-500 mr-2"></i> Hôm nay học gì?</h2>
+        <div id="todaySessions" class="space-y-4">
+          <p class="text-gray-500 text-sm">Đang tải...</p>
+        </div>
+      </div>
+
+      <!-- Lịch học sắp tới -->
+      <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+        <h2 class="text-lg font-bold text-gray-800 mb-4 flex items-center"><i class="fas fa-calendar-alt text-indigo-500 mr-2"></i> Buổi học sắp tới (7 ngày)</h2>
+        <div id="upcomingSessions" class="space-y-4">
+          <p class="text-gray-500 text-sm">Đang tải...</p>
+        </div>
+      </div>
+    </div>
+  
+<script src="/js/student/dashboard.js"></script>
+</div>
+</body>
+</html>

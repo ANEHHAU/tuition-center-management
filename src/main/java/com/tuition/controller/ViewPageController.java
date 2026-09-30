@@ -94,15 +94,4 @@ public class ViewPageController {
     public String teacherReports() { return "teacher/reports"; }
 
     // ==================== STUDENT ====================
-    @GetMapping("/student/schedule")
-    public String studentSchedule() { return "student/schedule"; }
-
-    @GetMapping("/student/attendance")
-    public String studentAttendance() { return "student/attendance"; }
-
-    @GetMapping("/student/invoices")
-    public String studentInvoices() { return "student/invoices"; }
-
-    @GetMapping("/student/invoice-detail")
-    public String studentInvoiceDetail() { return "student/invoice-detail"; }
 }

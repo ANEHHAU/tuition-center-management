@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{layout/main :: layout(~{::content})}">
+<head>
+  <title>Khóa học của tôi</title>
+</head>
+<body>
+  <div th:fragment="content">
+    <div class="mb-6 flex justify-between items-center">
+      <h1 class="text-2xl font-bold text-gray-800">Khóa học đang tham gia</h1>
+    </div>
+
+    <!-- Search & Filter -->
+    <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+      <div th:replace="~{layout/fragments/search-bar :: searchBar('Tìm tên khóa học...')}"></div>
+    </div>
+
+    <!-- Table -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+      <div class="overflow-x-auto">
+        <table class="w-full text-left border-collapse">
+          <thead>
+            <tr class="bg-gray-50 text-gray-600 text-sm uppercase tracking-wider border-b">
+              <th th:replace="~{layout/fragments/sort-header :: sortHeader('Khóa Học', 'name')}"></th>
+              <th class="px-4 py-3 font-medium">Giáo viên</th>
+              <th th:replace="~{layout/fragments/sort-header :: sortHeader('Học phí / Buổi', 'price')}"></th>
+              <th class="px-4 py-3 font-medium text-right">Hành động</th>
+            </tr>
+          </thead>
+          <tbody id="courseTableBody" class="text-sm text-gray-700 divide-y divide-gray-100">
+            <!-- Data will be rendered here -->
+          </tbody>
+        </table>
+      </div>
+      
+      <!-- Pagination -->
+      <div th:replace="~{layout/fragments/pagination :: pagination}"></div>
+    </div>
+  
+<script src="/js/list-helper.js"></script>
+    <script src="/js/student/course.js"></script>
+</div>
+</body>
+</html>

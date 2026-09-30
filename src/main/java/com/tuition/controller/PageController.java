@@ -28,13 +28,34 @@ public class PageController {
 
     @GetMapping("/admin")
     public String adminHome() {
-        return "redirect:/admin/users";
+        return "admin/home";
     }
 
     @GetMapping("/student")
     public String studentHome() {
-        return "student/home";
+        return "redirect:/student/dashboard";
     }
+
+    @GetMapping("/student/dashboard")
+    public String studentDashboard() { return "student/dashboard"; }
+
+    @GetMapping("/student/schedule")
+    public String studentSchedule() { return "student/schedule"; }
+    
+    @GetMapping("/student/session-detail")
+    public String studentSessionDetail() { return "student/session-detail"; }
+
+    @GetMapping("/student/attendance")
+    public String studentAttendance() { return "student/attendance"; }
+
+    @GetMapping("/student/courses")
+    public String studentCourses() { return "student/courses"; }
+
+    @GetMapping("/student/invoices")
+    public String studentInvoices() { return "student/invoices"; }
+
+    @GetMapping("/student/invoice-detail")
+    public String studentInvoiceDetail() { return "student/invoice-detail"; }
 
     // Điều hướng trang chủ mặc định về trang đăng nhập
     @GetMapping("/")

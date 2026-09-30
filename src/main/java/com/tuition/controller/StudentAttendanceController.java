@@ -1,8 +1,9 @@
 package com.tuition.controller;
 
+import com.tuition.dto.StudentAttendanceResponse;
 import com.tuition.dto.PageResponse;
 import com.tuition.dto.BaseSearchRequest;
-import com.tuition.dto.StudentSessionResponse;
+import com.tuition.entity.AttendanceStatus;
 import com.tuition.entity.User;
 import com.tuition.repository.UserRepository;
 import com.tuition.service.StudentService;
@@ -14,13 +15,13 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
-import java.util.List;
+import java.util.Map;
 
 @RestController
-@RequestMapping("/api/student/schedule")
+@RequestMapping("/api/student/attendance")
 @RequiredArgsConstructor
 @PreAuthorize("hasRole('STUDENT')")
-public class StudentScheduleController {
+public class StudentAttendanceController {
 
     private final StudentService studentService;
     private final UserRepository userRepository;
@@ -30,34 +31,29 @@ public class StudentScheduleController {
     }
 
     @GetMapping
-    public PageResponse<StudentSessionResponse> getSchedule(
+    public PageResponse<StudentAttendanceResponse> getAttendance(
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate to,
             @RequestParam(required = false) Long courseId,
+            @RequestParam(required = false) AttendanceStatus status,
             @ModelAttribute BaseSearchRequest request,
             @AuthenticationPrincipal UserDetails userDetails) {
-        return studentService.searchSchedule(getCurrentUser(userDetails), from, to, courseId, request);
+        
+        LocalDate queryFrom = from != null ? from : LocalDate.now().minusMonths(3);
+        LocalDate queryTo = to != null ? to : LocalDate.now().plusMonths(1);
+        
+        return studentService.getAttendanceHistory(getCurrentUser(userDetails), queryFrom, queryTo, courseId, status, request);
     }
 
-    @GetMapping("/session/{sessionId}")
-    public StudentSessionResponse getSessionDetail(
-            @PathVariable Long sessionId,
+    @GetMapping("/stats")
+    public Map<String, Object> getStats(
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate to,
             @AuthenticationPrincipal UserDetails userDetails) {
-        return studentService.getSessionDetail(getCurrentUser(userDetails), sessionId);
-    }
-
-    @GetMapping("/today")
-    public List<StudentSessionResponse> getTodaySchedule(@AuthenticationPrincipal UserDetails userDetails) {
-        return studentService.getTodaySessions(getCurrentUser(userDetails));
-    }
-
-    @GetMapping("/week")
-    public List<StudentSessionResponse> getWeekSchedule(
-            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date,
-            @AuthenticationPrincipal UserDetails userDetails) {
-        int dayOfWeek = date.getDayOfWeek().getValue();
-        LocalDate startOfWeek = date.minusDays(dayOfWeek - 1);
-        LocalDate endOfWeek = startOfWeek.plusDays(6);
-        return studentService.getSessionsByRange(getCurrentUser(userDetails), startOfWeek, endOfWeek);
+        
+        LocalDate queryFrom = from != null ? from : LocalDate.now().minusMonths(3);
+        LocalDate queryTo = to != null ? to : LocalDate.now().plusMonths(1);
+        
+        return studentService.getAttendanceStats(getCurrentUser(userDetails), queryFrom, queryTo);
     }
 }

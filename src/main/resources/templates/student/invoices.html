@@ -1,54 +1,66 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" th:replace="~{layout/main :: layout(~{::main})}">
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{layout/main :: layout(~{::content})}">
+<head><title>Hóa Đơn</title></head>
 <body>
-  <main class="space-y-6">
-    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center space-y-4 sm:space-y-0">
-      <h2 class="text-2xl font-bold text-gray-800">Hóa đơn Học phí</h2>
-      <div id="debt-badge" class="px-4 py-2 bg-red-100 text-red-800 rounded font-bold hidden">
-        Tổng nợ hiện tại: <span id="total-debt"></span>
-      </div>
+<div th:fragment="content">
+  <div class="mb-6 flex justify-between items-center">
+    <h1 class="text-2xl font-bold text-gray-800">Hóa Đơn Học Phí</h1>
+  </div>
+
+  <!-- Debt Alert Card -->
+  <div id="debtCard" class="hidden mb-6 bg-red-50 border border-red-200 rounded-xl p-6 flex items-center space-x-4 shadow-sm">
+    <div class="flex-shrink-0 p-3 bg-red-100 text-red-600 rounded-full">
+      <i class="fas fa-exclamation-triangle text-2xl"></i>
     </div>
-
-    <div id="error-msg" class="text-red-600 text-sm"></div>
-
-    <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-      <div class="overflow-x-auto">
-        <table class="w-full text-left border-collapse">
-          <thead>
-            <tr class="bg-gray-100 text-gray-600 text-sm uppercase tracking-wider border-b">
-              <th class="px-4 py-3 font-medium">ID</th>
-              <th class="px-4 py-3 font-medium">Bạn</th>
-              <th class="px-4 py-3 font-medium">Kỳ</th>
-              <th class="px-4 py-3 font-medium">Tổng tiền</th>
-              <th class="px-4 py-3 font-medium">Đã trả</th>
-              <th class="px-4 py-3 font-medium">Trạng thái</th>
-              <th class="px-4 py-3 font-medium">Hành động</th>
-            </tr>
-          </thead>
-          <tbody id="invoices-tbody">
-            <!-- Render by JS -->
-          </tbody>
-        </table>
-      </div>
+    <div>
+      <h3 class="text-lg font-bold text-red-700">Tổng nợ hiện tại</h3>
+      <p class="text-3xl font-bold text-red-600 mt-1" id="totalDebtAmount">0 ₫</p>
+      <p class="text-sm text-red-500 mt-1">Vui lòng thanh toán đúng hạn để tránh bị khóa học</p>
     </div>
+  </div>
 
-    <script th:src="@{/js/invoice.js}"></script>
-    <script>
-      document.addEventListener("DOMContentLoaded", async function() {
-        window.authService.requireAuth(['STUDENT']);
-        InvoiceManager.init('STUDENT');
-        
-        try {
-            const debtRes = await apiFetch('/api/student/invoices/current-debt');
-            if (debtRes && debtRes.totalDebt > 0) {
-                document.getElementById('total-debt').textContent = Number(debtRes.totalDebt).toLocaleString('vi-VN') + 'đ';
-                document.getElementById('debt-badge').classList.remove('hidden');
-            }
-        } catch(e) {}
+  <!-- No Debt Card -->
+  <div id="noDebtCard" class="hidden mb-6 bg-green-50 border border-green-200 rounded-xl p-4 flex items-center space-x-3 shadow-sm">
+    <i class="fas fa-check-circle text-green-500 text-2xl"></i>
+    <p class="font-medium text-green-700">Bạn đã thanh toán đầy đủ. Không có khoản nợ nào!</p>
+  </div>
 
-        InvoiceManager.loadInvoices();
-      });
-    </script>
-  </main>
+  <!-- Filters -->
+  <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex flex-wrap gap-4 items-center mb-6">
+    <select id="filterYear" class="border-gray-300 rounded-md shadow-sm text-sm focus:ring-blue-500 focus:border-blue-500" onchange="ListHelper.setFilter('year', this.value)">
+      <option value="">Tất cả năm</option>
+    </select>
+    <select id="filterStatus" class="border-gray-300 rounded-md shadow-sm text-sm focus:ring-blue-500 focus:border-blue-500" onchange="ListHelper.setFilter('status', this.value)">
+      <option value="">Tất cả trạng thái</option>
+      <option value="UNPAID">Chưa thanh toán</option>
+      <option value="PARTIAL">Thanh toán một phần</option>
+      <option value="PAID">Đã thanh toán</option>
+    </select>
+  </div>
+
+  <!-- Table -->
+  <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+    <div class="overflow-x-auto">
+      <table class="w-full text-left border-collapse min-w-[600px]">
+        <thead>
+          <tr class="bg-gray-50 text-gray-600 text-sm uppercase tracking-wider border-b">
+            <th class="px-4 py-3 font-medium">Tháng/Năm</th>
+            <th class="px-4 py-3 font-medium">Tổng Tiền</th>
+            <th class="px-4 py-3 font-medium">Đã Trả</th>
+            <th class="px-4 py-3 font-medium text-red-600">Còn Nợ</th>
+            <th class="px-4 py-3 font-medium">Trạng thái</th>
+            <th class="px-4 py-3 font-medium text-right">Hành động</th>
+          </tr>
+        </thead>
+        <tbody id="invoiceTableBody" class="text-sm text-gray-700 divide-y divide-gray-100">
+        </tbody>
+      </table>
+    </div>
+    <div th:replace="~{layout/fragments/pagination :: pagination}"></div>
+  </div>
+
+<script src="/js/list-helper.js"></script>
+  <script src="/js/student/invoice.js"></script>
+</div>
 </body>
 </html>
