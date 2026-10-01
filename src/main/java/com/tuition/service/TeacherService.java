@@ -405,12 +405,17 @@ public class TeacherService {
     public Map<String, Object> getDashboardStats(User teacher) {
         Map<String, Object> stats = new LinkedHashMap<>();
         long totalCourses = courseRepository.findByTeacherId(teacher.getId()).size();
-        long totalGroups = groupRepository.findByTeacherId(teacher.getId()).size();
-        long totalStudents = userRepository.findByRoleAndCreatedById(Role.STUDENT, teacher.getId()).size();
-
-        // Today sessions
-        LocalDate today = LocalDate.now();
         List<Group> groups = groupRepository.findByTeacherId(teacher.getId());
+        long totalGroups = groups.size();
+        
+        long totalStudents = groups.stream()
+                .flatMap(g -> enrollmentRepository.findByGroupId(g.getId()).stream())
+                .map(com.tuition.entity.Enrollment::getStudent)
+                .distinct()
+                .count();
+                
+        // Today sessions
+        java.time.LocalDate today = java.time.LocalDate.now();
         long todaySessions = 0;
         for (Group g : groups) {
             todaySessions += sessionRepository.findByGroupIdAndDateBetween(g.getId(), today, today).size();

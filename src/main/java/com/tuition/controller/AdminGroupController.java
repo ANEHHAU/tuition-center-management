@@ -27,7 +27,12 @@ public class AdminGroupController {
     }
 
     @GetMapping
-    public List<GroupResponse> getAllGroups(@AuthenticationPrincipal UserDetails userDetails) {
+    public List<GroupResponse> getAllGroups(
+            @RequestParam(required = false) Long courseId,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        if (courseId != null) {
+            return groupService.listByCourse(courseId, getCurrentUser(userDetails));
+        }
         return groupService.listByCurrentTeacher(getCurrentUser(userDetails));
     }
 

@@ -38,7 +38,7 @@ const SessionManager = {
         if (!tbody) return;
         
         if (!res.content || res.content.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="7" class="text-center py-4 text-gray-500">Không tìm thấy buổi học nào.</td></tr>`;
+            tbody.innerHTML = `<tr><td colspan="8" class="text-center py-4 text-gray-500">Không tìm thấy buổi học nào.</td></tr>`;
             return;
         }
 
@@ -50,10 +50,8 @@ const SessionManager = {
 
             return `
             <tr class="border-b hover:bg-gray-50 transition-colors">
-                <td class="px-4 py-3">
-                    <div class="font-medium text-gray-800">${s.groupName}</div>
-                    <div class="text-xs text-gray-500">${s.courseName}</div>
-                </td>
+                <td class="px-4 py-3 font-medium text-gray-800">${s.groupName || '-'}</td>
+                <td class="px-4 py-3 text-sm text-gray-700">${s.courseName || '-'}</td>
                 <td class="px-4 py-3">${s.date}</td>
                 <td class="px-4 py-3">${s.startTime} - ${s.endTime}</td>
                 <td class="px-4 py-3">${s.room || '-'}</td>
@@ -63,11 +61,22 @@ const SessionManager = {
                 <td class="px-4 py-3 text-center">${s.attendanceCount || 0}</td>
                 <td class="px-4 py-3 space-x-2 text-right border-l border-gray-100">
                     ${s.status === 'SCHEDULED' ? `<a href="/teacher/attendance?sessionId=${s.id}" class="text-indigo-600 hover:text-indigo-800 font-medium text-sm">Điểm danh</a>` : ''}
+                    ${s.status === 'SCHEDULED' ? `<button onclick="SessionManager.cancelSession(${s.id})" class="text-yellow-600 hover:text-yellow-800 font-medium text-sm">Hủy</button>` : ''}
                     <button onclick="SessionManager.deleteSession(${s.id})" class="text-red-600 hover:text-red-800 font-medium text-sm">Xóa</button>
                 </td>
             </tr>
             `;
         }).join('');
+    },
+
+    async cancelSession(id) {
+        if (!confirm('Bạn chắc chắn muốn hủy buổi học này?')) return;
+        try {
+            await window.apiFetch('/api/teacher/sessions/' + id + '/cancel', { method: 'POST' });
+            window.ListHelper.load();
+        } catch (e) {
+            alert(e.message);
+        }
     },
 
     async deleteSession(id) {

@@ -10,7 +10,7 @@ function renderTable(response) {
     const tbody = document.getElementById("tableBody");
     tbody.innerHTML = "";
     if (!response || !response.content || response.content.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="7" class="px-6 py-12 text-center text-gray-500 text-sm">Không tìm thấy buổi học nào.</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="8" class="px-6 py-12 text-center text-gray-500 text-sm">Không tìm thấy buổi học nào.</td></tr>`;
         return;
     }
     const { page, size, content } = response;
@@ -29,6 +29,7 @@ function renderTable(response) {
             <td class="px-6 py-4 text-sm font-medium text-gray-900">${s.date || '-'}</td>
             <td class="px-6 py-4 text-sm text-gray-700">${s.startTime || ''} - ${s.endTime || ''}</td>
             <td class="px-6 py-4 text-sm text-gray-700">${s.groupName || '-'}</td>
+            <td class="px-6 py-4 text-sm text-gray-700">${s.courseName || '-'}</td>
             <td class="px-6 py-4 text-sm text-gray-700">${s.room || '-'}</td>
             <td class="px-6 py-4">${statusBadge}</td>
             <td class="px-6 py-4 text-right text-sm font-medium space-x-2">
