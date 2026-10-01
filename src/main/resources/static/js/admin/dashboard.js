@@ -18,10 +18,10 @@ async function loadDashboardStats() {
         document.getElementById("statStudents").textContent = resS.totalElements || '0';
         
         const resC = await window.apiFetch('/api/admin/courses?size=1');
-        document.getElementById("statCourses").textContent = resC.totalElements || '0';
+        document.getElementById("statCourses").textContent = Array.isArray(resC) ? resC.length : (resC.totalElements || '0');
         
         const resG = await window.apiFetch('/api/admin/groups?size=1');
-        document.getElementById("statGroups").textContent = resG.totalElements || '0';
+        document.getElementById("statGroups").textContent = Array.isArray(resG) ? resG.length : (resG.totalElements || '0');
     } catch (e) {
         console.error("Lỗi tải thống kê", e);
     }

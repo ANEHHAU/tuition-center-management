@@ -33,11 +33,14 @@ public class AdminSessionController {
 
     @GetMapping
     public List<SessionResponse> getSessions(
-            @RequestParam Long groupId,
+            @RequestParam(required = false) Long groupId,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate to,
             @AuthenticationPrincipal UserDetails userDetails) {
         User currentUser = getCurrentUser(userDetails);
+        if (groupId == null) {
+            return java.util.List.of();
+        }
         if (from != null && to != null) {
             return sessionService.listByRange(groupId, from, to, currentUser);
         }

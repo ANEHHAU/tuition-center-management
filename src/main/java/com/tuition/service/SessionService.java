@@ -1,5 +1,6 @@
 package com.tuition.service;
 
+import com.tuition.aspect.Auditable;
 import com.tuition.dto.SessionRequest;
 import com.tuition.dto.SessionResponse;
 import com.tuition.entity.*;
@@ -31,6 +32,7 @@ public class SessionService {
      * - Validate không trùng (group, date, startTime)
      */
     @Transactional
+    @Auditable(action = "CREATE", entityType = "SESSION")
     public SessionResponse create(SessionRequest req, User currentUser) {
         Group group = groupService.getGroupOrThrow(req.groupId());
         checkGroupOwnership(group, currentUser);
@@ -68,6 +70,7 @@ public class SessionService {
      * Cập nhật buổi học. Check quyền group.
      */
     @Transactional
+    @Auditable(action = "UPDATE", entityType = "SESSION")
     public SessionResponse update(Long id, SessionRequest req, User currentUser) {
         Session session = getSessionOrThrow(id);
         checkGroupOwnership(session.getGroup(), currentUser);
@@ -88,6 +91,7 @@ public class SessionService {
      * Hủy buổi học: set status = CANCELLED, tất cả attendance → CANCELLED
      */
     @Transactional
+    @Auditable(action = "CANCEL", entityType = "SESSION")
     public SessionResponse cancel(Long id, User currentUser) {
         Session session = getSessionOrThrow(id);
         checkGroupOwnership(session.getGroup(), currentUser);

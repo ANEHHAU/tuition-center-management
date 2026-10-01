@@ -32,11 +32,11 @@ public class TeacherStudentController {
     }
 
     @GetMapping
-    public PageResponse<UserResponse> getStudents(
+    public PageResponse<com.tuition.dto.StudentWithGroupsResponse> getStudents(
             @ModelAttribute BaseSearchRequest req,
             @RequestParam(required = false) String status,
             @AuthenticationPrincipal UserDetails userDetails) {
-        return teacherService.searchStudents(getCurrentUser(userDetails), req);
+        return teacherService.searchStudentsWithGroups(getCurrentUser(userDetails), req);
     }
 
     @PostMapping
@@ -77,5 +77,20 @@ public class TeacherStudentController {
             @PathVariable Long id,
             @AuthenticationPrincipal UserDetails userDetails) {
         return teacherService.getStudentDetail(getCurrentUser(userDetails), id);
+    }
+
+    @GetMapping("/find")
+    public UserResponse findStudentByEmailOrPhone(
+            @RequestParam String query,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        return teacherService.findStudentByEmailOrPhone(query);
+    }
+
+    @PostMapping("/enroll/{studentId}/group/{groupId}")
+    public void enrollStudentToGroup(
+            @PathVariable Long studentId,
+            @PathVariable Long groupId,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        teacherService.enrollStudentToGroup(getCurrentUser(userDetails), studentId, groupId);
     }
 }

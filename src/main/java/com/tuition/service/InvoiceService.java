@@ -1,5 +1,6 @@
 package com.tuition.service;
 
+import com.tuition.aspect.Auditable;
 import com.tuition.dto.InvoiceResponse;
 import com.tuition.entity.*;
 import com.tuition.exception.BusinessException;
@@ -32,6 +33,7 @@ public class InvoiceService {
      * Tạo hóa đơn cho 1 học sinh theo tháng/năm
      */
     @Transactional
+    @Auditable(action = "GENERATE", entityType = "INVOICE")
     public InvoiceResponse generateForStudent(Long studentId, Integer month, Integer year, User currentUser) {
         User student = userRepository.findById(studentId)
                 .orElseThrow(() -> new BusinessException("Không tìm thấy học sinh"));
@@ -49,6 +51,7 @@ public class InvoiceService {
      * Tái tạo lại hóa đơn (Regenerate)
      */
     @Transactional
+    @Auditable(action = "REGENERATE", entityType = "INVOICE")
     public InvoiceResponse regenerate(Long invoiceId, User currentUser) {
         Invoice invoice = invoiceRepository.findById(invoiceId)
                 .orElseThrow(() -> new BusinessException("Không tìm thấy hóa đơn"));
@@ -141,6 +144,7 @@ public class InvoiceService {
      * Đổi trạng thái hóa đơn thành FINALIZED
      */
     @Transactional
+    @Auditable(action = "FINALIZE", entityType = "INVOICE")
     public InvoiceResponse finalize(Long invoiceId) {
         Invoice invoice = invoiceRepository.findById(invoiceId)
                 .orElseThrow(() -> new BusinessException("Không tìm thấy hóa đơn"));
@@ -189,7 +193,24 @@ public class InvoiceService {
     }
 
     @Transactional(readOnly = true)
-    public List<InvoiceResponse> listByTeacherAndMonth(Long teacherId, Integer month, Integer year) {
+    public List<InvoiceResponse> listAll(Integer month, Integer year, String status) {
+        List<Invoice> invoices;
+        if (month != null && year != null) {
+            invoices = invoiceRepository.findByMonthAndYear(month, year);
+        } else {
+            invoices = invoiceRepository.findAll();
+        }
+        
+        if (status != null && !status.isEmpty()) {
+            InvoiceStatus s = InvoiceStatus.valueOf(status);
+            invoices = invoices.stream().filter(i -> i.getStatus() == s).toList();
+        }
+        
+        return invoices.stream().map(InvoiceResponse::fromEntity).toList();
+    }
+    
+    @Transactional(readOnly = true)
+    public List<InvoiceResponse> listByTeacher(Long teacherId, Integer month, Integer year, String status) {
         return invoiceRepository.findByTeacherIdAndMonthAndYear(teacherId, month, year).stream()
                 .map(InvoiceResponse::fromEntity)
                 .toList();

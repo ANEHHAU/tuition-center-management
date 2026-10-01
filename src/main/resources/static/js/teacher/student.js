@@ -7,6 +7,19 @@ const StudentManager = {
             'asc'
         );
         this.bindModalEvents();
+        this.loadGroups();
+    },
+
+    async loadGroups() {
+        try {
+            const res = await window.apiFetch('/api/teacher/groups?size=100');
+            const select = document.getElementById('enrollGroupId');
+            if (select && res && Array.isArray(res.content)) {
+                select.innerHTML = res.content.map(g => `<option value="${g.id}">${g.name} - ${g.courseName}</option>`).join('');
+            }
+        } catch (e) {
+            console.error('Lỗi tải nhóm', e);
+        }
     },
 
     renderTable(res) {
@@ -14,11 +27,17 @@ const StudentManager = {
         if (!tbody) return;
         
         if (!res.content || res.content.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="6" class="text-center py-4 text-gray-500">Không tìm thấy học sinh nào.</td></tr>`;
+            tbody.innerHTML = `<tr><td colspan="6" class="text-center py-4 text-gray-500">Chưa có dữ liệu.</td></tr>`;
             return;
         }
 
-        tbody.innerHTML = res.content.map(s => `
+        tbody.innerHTML = res.content.map(s => {
+            let groupsHtml = '-';
+            if (s.enrolledGroups && s.enrolledGroups.length > 0) {
+                groupsHtml = s.enrolledGroups.map(g => `<div class="text-xs text-blue-600 bg-blue-50 rounded px-2 py-1 mb-1 border border-blue-100">${g}</div>`).join('');
+            }
+
+            return `
             <tr class="border-b hover:bg-gray-50 transition-colors">
                 <td class="px-4 py-3">
                     <div class="flex items-center space-x-3">
@@ -27,25 +46,27 @@ const StudentManager = {
                         </div>
                         <div>
                             <div class="font-medium text-gray-800">${s.fullName}</div>
-                            <div class="text-xs text-gray-500">${s.username}</div>
+                            <div class="text-xs text-gray-500">${s.username || ''}</div>
                         </div>
                     </div>
                 </td>
                 <td class="px-4 py-3 text-gray-600">${s.email || '-'}</td>
                 <td class="px-4 py-3 text-gray-600">${s.phone || '-'}</td>
+                <td class="px-4 py-3">${groupsHtml}</td>
                 <td class="px-4 py-3">
                     <span class="px-2 py-1 text-xs font-semibold rounded-full ${
                         s.status === 'ACTIVE' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-                    }">${s.status}</span>
+                    }">${s.status === 'ACTIVE' ? 'Hoạt động' : s.status}</span>
                 </td>
-                <td class="px-4 py-3 space-x-2">
+                <td class="px-4 py-3 space-x-2 text-right">
                     <a href="/teacher/student-detail?id=${s.id}" class="text-indigo-600 hover:text-indigo-800 font-medium text-sm">Chi tiết</a>
                     <button onclick="StudentManager.openEditModal(${s.id})" class="text-blue-600 hover:text-blue-800 font-medium text-sm">Sửa</button>
                     <button onclick="StudentManager.openResetPasswordModal(${s.id})" class="text-yellow-600 hover:text-yellow-800 font-medium text-sm">Pass</button>
                     <button onclick="StudentManager.deleteStudent(${s.id})" class="text-red-600 hover:text-red-800 font-medium text-sm">Khóa</button>
                 </td>
             </tr>
-        `).join('');
+            `;
+        }).join('');
     },
 
     bindModalEvents() {
@@ -71,7 +92,6 @@ const StudentManager = {
         document.getElementById('studentId').value = '';
         document.getElementById('modalTitle').textContent = 'Thêm Học Sinh Mới';
         
-        // Hiện password field khi tạo
         document.getElementById('passwordGroup').classList.remove('hidden');
         document.getElementById('studentPassword').required = true;
 
@@ -88,7 +108,6 @@ const StudentManager = {
             document.getElementById('studentEmail').value = student.email || '';
             document.getElementById('studentPhone').value = student.phone || '';
             
-            // Ẩn password field khi sửa
             document.getElementById('passwordGroup').classList.add('hidden');
             document.getElementById('studentPassword').required = false;
 
@@ -165,6 +184,68 @@ const StudentManager = {
             this.closePasswordModal();
         } catch (e) {
             alert(e.message);
+        }
+    },
+
+    openSearchModal() {
+        document.getElementById('searchQuery').value = '';
+        document.getElementById('searchError').classList.add('hidden');
+        document.getElementById('searchResult').classList.add('hidden');
+        document.getElementById('btnEnroll').classList.add('hidden');
+        document.getElementById('searchStudentModal').classList.remove('hidden');
+    },
+
+    closeSearchModal() {
+        document.getElementById('searchStudentModal').classList.add('hidden');
+    },
+
+    async searchStudent() {
+        const query = document.getElementById('searchQuery').value.trim();
+        const err = document.getElementById('searchError');
+        const resDiv = document.getElementById('searchResult');
+        const btnEnroll = document.getElementById('btnEnroll');
+        
+        err.classList.add('hidden');
+        resDiv.classList.add('hidden');
+        btnEnroll.classList.add('hidden');
+
+        if (!query) {
+            err.textContent = 'Vui lòng nhập email hoặc SĐT';
+            err.classList.remove('hidden');
+            return;
+        }
+
+        try {
+            const student = await window.apiFetch('/api/teacher/students/find?query=' + encodeURIComponent(query));
+            document.getElementById('foundName').textContent = student.fullName || student.username;
+            document.getElementById('foundContact').textContent = (student.email || '') + ' - ' + (student.phone || '');
+            document.getElementById('foundStudentId').value = student.id;
+            
+            resDiv.classList.remove('hidden');
+            btnEnroll.classList.remove('hidden');
+        } catch (e) {
+            err.textContent = e.message || 'Không tìm thấy học sinh';
+            err.classList.remove('hidden');
+        }
+    },
+
+    async enrollStudent() {
+        const studentId = document.getElementById('foundStudentId').value;
+        const groupId = document.getElementById('enrollGroupId').value;
+        if (!groupId) {
+            alert("Bạn chưa có nhóm nào để thêm học sinh. Vui lòng tạo nhóm trước.");
+            return;
+        }
+
+        try {
+            await window.apiFetch(`/api/teacher/students/enroll/${studentId}/group/${groupId}`, {
+                method: 'POST'
+            });
+            alert('Thêm học sinh vào nhóm thành công!');
+            this.closeSearchModal();
+            window.ListHelper.load();
+        } catch (e) {
+            alert('Lỗi: ' + (e.message || e));
         }
     }
 };

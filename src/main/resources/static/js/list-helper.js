@@ -51,7 +51,21 @@ const ListHelper = {
             const url = this.buildUrl();
             this.updateUrlParams();
             
-            const response = await window.apiFetch(url);
+            let response = await window.apiFetch(url);
+            
+            // Nếu API trả về mảng (List) thay vì PageResponse, tự động bọc lại thành PageResponse ảo
+            if (Array.isArray(response)) {
+                response = {
+                    content: response,
+                    page: 0,
+                    size: response.length || 10,
+                    totalElements: response.length,
+                    totalPages: 1,
+                    first: true,
+                    last: true
+                };
+            }
+            
             if (this.onRender) {
                 this.onRender(response);
             }

@@ -42,8 +42,20 @@ public class TeacherService {
      * Hỗ trợ keyword search 3-in-1, sort theo tên (từ cuối), phân trang.
      */
     @Transactional(readOnly = true)
-    public PageResponse<UserResponse> searchStudents(User teacher, BaseSearchRequest req) {
-        List<User> students = userRepository.findByRoleAndCreatedById(Role.STUDENT, teacher.getId());
+    public PageResponse<com.tuition.dto.StudentWithGroupsResponse> searchStudentsWithGroups(User teacher, BaseSearchRequest req) {
+        // Fetch all groups for this teacher
+        List<Group> teacherGroups = groupRepository.findByTeacherId(teacher.getId());
+        
+        // Fetch enrollments
+        List<Enrollment> enrollments = teacherGroups.stream()
+                .flatMap(g -> enrollmentRepository.findByGroupId(g.getId()).stream())
+                .collect(java.util.stream.Collectors.toList());
+                
+        // Fetch distinct students from those enrollments
+        List<User> students = enrollments.stream()
+                .map(Enrollment::getStudent)
+                .distinct()
+                .collect(java.util.stream.Collectors.toList());
 
         // Filter by keyword
         if (req.getKeyword() != null && !req.getKeyword().trim().isEmpty()) {
@@ -75,7 +87,14 @@ public class TeacherService {
         int totalPages = (int) Math.ceil((double) total / req.getSize());
 
         return PageResponse.of(
-                pageContent.stream().map(UserResponse::fromEntity).toList(),
+                pageContent.stream().map(u -> {
+                    List<String> studentGroups = enrollments.stream()
+                            .filter(e -> e.getStudent().getId().equals(u.getId()))
+                            .map(e -> e.getGroup().getName() + " - " + e.getGroup().getCourse().getName())
+                            .distinct()
+                            .collect(java.util.stream.Collectors.toList());
+                    return com.tuition.dto.StudentWithGroupsResponse.fromEntity(u, studentGroups);
+                }).toList(),
                 req.getPage(), req.getSize(), total, totalPages,
                 req.getPage() == 0, end >= total
         );
@@ -140,6 +159,48 @@ public class TeacherService {
     public UserResponse getStudentDetail(User teacher, Long studentId) {
         User student = getStudentOfTeacher(teacher, studentId);
         return UserResponse.fromEntity(student);
+    }
+
+    @Transactional(readOnly = true)
+    public UserResponse findStudentByEmailOrPhone(String query) {
+        if (query == null || query.trim().isEmpty()) {
+            throw new BusinessException("Vui lòng nhập email hoặc số điện thoại");
+        }
+        User student = userRepository.findByEmail(query).orElse(null);
+        if (student == null) {
+            student = userRepository.findByPhone(query).orElse(null);
+        }
+        if (student == null || student.getRole() != Role.STUDENT) {
+            throw new BusinessException("Không tìm thấy học sinh với thông tin này");
+        }
+        return UserResponse.fromEntity(student);
+    }
+
+    @Transactional
+    public void enrollStudentToGroup(User teacher, Long studentId, Long groupId) {
+        Group group = groupRepository.findById(groupId)
+                .orElseThrow(() -> new BusinessException("Không tìm thấy nhóm"));
+        if (!group.getTeacher().getId().equals(teacher.getId())) {
+            throw new BusinessException("Bạn không có quyền thêm học sinh vào nhóm này");
+        }
+        User student = userRepository.findById(studentId)
+                .orElseThrow(() -> new BusinessException("Không tìm thấy học sinh"));
+        if (student.getRole() != Role.STUDENT) {
+            throw new BusinessException("Người dùng không phải là học sinh");
+        }
+        
+        boolean alreadyEnrolled = enrollmentRepository.findByStudentIdAndGroupIdAndStatus(studentId, groupId, com.tuition.entity.EnrollmentStatus.ACTIVE).isPresent();
+        if (alreadyEnrolled) {
+            throw new BusinessException("Học sinh đã có trong nhóm này");
+        }
+        
+        com.tuition.entity.Enrollment enrollment = com.tuition.entity.Enrollment.builder()
+                .student(student)
+                .group(group)
+                .joinDate(java.time.LocalDate.now())
+                .status(com.tuition.entity.EnrollmentStatus.ACTIVE)
+                .build();
+        enrollmentRepository.save(enrollment);
     }
 
     private User getStudentOfTeacher(User teacher, Long studentId) {

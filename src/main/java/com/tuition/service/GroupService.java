@@ -1,5 +1,6 @@
 package com.tuition.service;
 
+import com.tuition.aspect.Auditable;
 import com.tuition.dto.EnrollmentResponse;
 import com.tuition.dto.GroupRequest;
 import com.tuition.dto.GroupResponse;
@@ -33,6 +34,7 @@ public class GroupService {
      * Tạo group mới. Validate course thuộc về teacher hiện tại.
      */
     @Transactional
+    @Auditable(action = "CREATE", entityType = "GROUP")
     public GroupResponse create(GroupRequest req, User currentUser) {
         Course course = courseService.getCourseOrThrow(req.courseId());
 
@@ -66,6 +68,7 @@ public class GroupService {
      * Cập nhật group. Check quyền sở hữu.
      */
     @Transactional
+    @Auditable(action = "UPDATE", entityType = "GROUP")
     public GroupResponse update(Long id, GroupRequest req, User currentUser) {
         Group group = getGroupOrThrow(id);
         checkGroupOwnership(group, currentUser);
@@ -84,6 +87,7 @@ public class GroupService {
      * Xóa mềm group: đặt status = INACTIVE
      */
     @Transactional
+    @Auditable(action = "DELETE", entityType = "GROUP")
     public void delete(Long id, User currentUser) {
         Group group = getGroupOrThrow(id);
         checkGroupOwnership(group, currentUser);

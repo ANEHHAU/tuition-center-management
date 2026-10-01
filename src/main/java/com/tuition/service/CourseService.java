@@ -1,5 +1,6 @@
 package com.tuition.service;
 
+import com.tuition.aspect.Auditable;
 import com.tuition.dto.CourseRequest;
 import com.tuition.dto.CourseResponse;
 import com.tuition.entity.Course;
@@ -16,10 +17,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
-/**
- * Service quản lý Khóa học (Course).
- * Teacher chỉ thấy course của mình. Admin thấy tất cả.
- */
 @Service
 @RequiredArgsConstructor
 public class CourseService {
@@ -28,16 +25,11 @@ public class CourseService {
     private final GroupRepository groupRepository;
     private final UserRepository userRepository;
 
-    /**
-     * Tạo khóa học mới.
-     * - TEACHER: tự động gán teacher = currentUser
-     * - ADMIN: cho phép truyền teacherId để gán cho teacher khác
-     */
     @Transactional
+    @Auditable(action = "CREATE", entityType = "COURSE")
     public CourseResponse create(CourseRequest req, User currentUser) {
         User teacher = resolveTeacher(req.teacherId(), currentUser);
 
-        // Validate: không trùng tên course trong cùng 1 teacher
         if (courseRepository.existsByNameAndTeacherId(req.name(), teacher.getId())) {
             throw new BusinessException("Giáo viên đã có khóa học trùng tên: " + req.name());
         }
@@ -56,10 +48,8 @@ public class CourseService {
         return CourseResponse.fromEntity(saved, 0);
     }
 
-    /**
-     * Cập nhật khóa học. Chỉ chủ sở hữu hoặc ADMIN mới có quyền.
-     */
     @Transactional
+    @Auditable(action = "UPDATE", entityType = "COURSE")
     public CourseResponse update(Long id, CourseRequest req, User currentUser) {
         Course course = getCourseOrThrow(id);
         checkOwnership(course, currentUser);
@@ -76,10 +66,8 @@ public class CourseService {
         return CourseResponse.fromEntity(saved, groupCount);
     }
 
-    /**
-     * Xóa mềm (soft delete): đặt status = INACTIVE
-     */
     @Transactional
+    @Auditable(action = "DELETE", entityType = "COURSE")
     public void delete(Long id, User currentUser) {
         Course course = getCourseOrThrow(id);
         checkOwnership(course, currentUser);

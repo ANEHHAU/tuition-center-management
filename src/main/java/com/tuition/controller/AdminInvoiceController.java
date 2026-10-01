@@ -30,6 +30,14 @@ public class AdminInvoiceController {
         return userRepository.findByUsername(userDetails.getUsername()).orElseThrow();
     }
 
+    @GetMapping
+    public List<InvoiceResponse> getInvoices(
+            @RequestParam(required = false) Integer month,
+            @RequestParam(required = false) Integer year,
+            @RequestParam(required = false) String status) {
+        return invoiceService.listAll(month, year, status);
+    }
+
     @PostMapping("/{id}/finalize")
     public InvoiceResponse finalizeInvoice(@PathVariable Long id) {
         return invoiceService.finalize(id);

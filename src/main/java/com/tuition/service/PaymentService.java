@@ -1,5 +1,6 @@
 package com.tuition.service;
 
+import com.tuition.aspect.Auditable;
 import com.tuition.dto.PaymentRequest;
 import com.tuition.dto.PaymentResponse;
 import com.tuition.entity.*;
@@ -21,6 +22,7 @@ public class PaymentService {
     private final InvoiceRepository invoiceRepository;
 
     @Transactional
+    @Auditable(action = "CREATE", entityType = "PAYMENT")
     public PaymentResponse record(PaymentRequest req, User currentUser) {
         Invoice invoice = invoiceRepository.findById(req.invoiceId())
                 .orElseThrow(() -> new BusinessException("Không tìm thấy hóa đơn"));
