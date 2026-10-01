@@ -61,6 +61,7 @@ const SessionManager = {
                 <td class="px-4 py-3 text-center">${s.attendanceCount || 0}</td>
                 <td class="px-4 py-3 space-x-2 text-right border-l border-gray-100">
                     ${s.status === 'SCHEDULED' ? `<a href="/teacher/attendance?sessionId=${s.id}" class="text-indigo-600 hover:text-indigo-800 font-medium text-sm">Điểm danh</a>` : ''}
+                    ${s.status === 'COMPLETED' ? `<a href="/teacher/attendance?sessionId=${s.id}" class="text-orange-600 hover:text-orange-800 font-medium text-sm">Sửa điểm danh</a>` : ''}
                     ${s.status === 'SCHEDULED' ? `<button onclick="SessionManager.cancelSession(${s.id})" class="text-yellow-600 hover:text-yellow-800 font-medium text-sm">Hủy</button>` : ''}
                     <button onclick="SessionManager.deleteSession(${s.id})" class="text-red-600 hover:text-red-800 font-medium text-sm">Xóa</button>
                 </td>

@@ -39,7 +39,9 @@ async function apiFetch(url, options = {}) {
 
         if (!response.ok) {
             const errorMessage = (data && data.message) ? data.message : "Đã có lỗi xảy ra (Status: " + response.status + ")";
-            return Promise.reject(new Error(errorMessage));
+            const err = new Error(errorMessage);
+            if (data && data.errors) err.errors = data.errors;
+            return Promise.reject(err);
         }
 
         return data;

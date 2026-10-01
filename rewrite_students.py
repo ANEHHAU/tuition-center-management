@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿html_content = '''<!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org"
       th:replace="~{layout/main :: layout('Quản lý học sinh', ~{::main})}">
 <head>
@@ -194,3 +194,7 @@
   </main>
 </body>
 </html>
+'''
+
+with open('src/main/resources/templates/teacher/students.html', 'w', encoding='utf-8') as f:
+    f.write(html_content)

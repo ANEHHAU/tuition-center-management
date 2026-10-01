@@ -51,11 +51,14 @@ public class TeacherService {
                 .flatMap(g -> enrollmentRepository.findByGroupId(g.getId()).stream())
                 .collect(java.util.stream.Collectors.toList());
                 
-        // Fetch distinct students from those enrollments
-        List<User> students = enrollments.stream()
-                .map(Enrollment::getStudent)
-                .distinct()
-                .collect(java.util.stream.Collectors.toList());
+        // Fetch students created by this teacher
+        List<User> managedStudents = userRepository.findByRoleAndCreatedById(Role.STUDENT, teacher.getId());
+
+        // Combine distinct students
+        List<User> students = java.util.stream.Stream.concat(
+                managedStudents.stream(),
+                enrollments.stream().map(Enrollment::getStudent)
+        ).distinct().collect(java.util.stream.Collectors.toList());
 
         // Filter by keyword
         if (req.getKeyword() != null && !req.getKeyword().trim().isEmpty()) {
@@ -149,6 +152,13 @@ public class TeacherService {
     }
 
     @Transactional
+    public void restoreStudent(User teacher, Long studentId) {
+        User student = getStudentOfTeacher(teacher, studentId);
+        student.setStatus(UserStatus.ACTIVE);
+        userRepository.save(student);
+    }
+
+    @Transactional
     public void resetStudentPassword(User teacher, Long studentId, String newPassword) {
         User student = getStudentOfTeacher(teacher, studentId);
         student.setPassword(passwordEncoder.encode(newPassword));
@@ -209,10 +219,19 @@ public class TeacherService {
         if (student.getRole() != Role.STUDENT) {
             throw new BusinessException("User này không phải học sinh");
         }
-        if (!teacher.getId().equals(student.getCreatedById())) {
-            throw new BusinessException("Bạn không có quyền quản lý học sinh này");
+        // Cho phép nếu teacher là người tạo (quản lý) học sinh này
+        if (teacher.getId().equals(student.getCreatedById())) {
+            return student;
         }
-        return student;
+        // Hoặc nếu học sinh đang enrolled trong nhóm của teacher
+        List<Group> teacherGroups = groupRepository.findByTeacherId(teacher.getId());
+        boolean isEnrolled = teacherGroups.stream().anyMatch(g ->
+                enrollmentRepository.findByStudentIdAndGroupIdAndStatus(
+                        studentId, g.getId(), com.tuition.entity.EnrollmentStatus.ACTIVE).isPresent());
+        if (isEnrolled) {
+            return student;
+        }
+        throw new BusinessException("Bạn không có quyền quản lý học sinh này");
     }
 
     // ==================== COURSES SEARCH ====================

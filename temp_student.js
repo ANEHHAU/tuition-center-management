@@ -1,4 +1,4 @@
-const StudentManager = {
+﻿const StudentManager = {
     init() {
         window.ListHelper.init(
             '/api/teacher/students',
@@ -62,10 +62,7 @@ const StudentManager = {
                     <a href="/teacher/student-detail?id=${s.id}" class="text-indigo-600 hover:text-indigo-800 font-medium text-sm">Chi tiết</a>
                     <button onclick="StudentManager.openEditModal(${s.id})" class="text-blue-600 hover:text-blue-800 font-medium text-sm">Sửa</button>
                     <button onclick="StudentManager.openResetPasswordModal(${s.id})" class="text-yellow-600 hover:text-yellow-800 font-medium text-sm">Pass</button>
-                </td>
-                <td class="px-4 py-3 space-x-2 text-right border-l border-gray-100">
-                    ${s.status === 'ACTIVE' ? `<button onclick="StudentManager.deleteStudent(${s.id})" class="text-red-600 hover:text-red-800 font-medium text-sm">Khóa</button>` : `<button onclick="StudentManager.restoreStudent(${s.id})" class="text-green-600 hover:text-green-800 font-medium text-sm">Mở khóa</button>`}
-                    <button onclick="StudentManager.openSearchModal('${s.email || s.phone || ''}')" class="text-indigo-600 hover:text-indigo-800 font-medium text-sm">Nhóm</button>
+                    <button onclick="StudentManager.deleteStudent(${s.id})" class="text-red-600 hover:text-red-800 font-medium text-sm">Khóa</button>
                 </td>
             </tr>
             `;
@@ -161,17 +158,6 @@ const StudentManager = {
         }
     },
 
-    
-    async restoreStudent(id) {
-        if (!confirm('Bạn chắc chắn muốn mở khóa học sinh này?')) return;
-        try {
-            await window.apiFetch('/api/teacher/students/' + id + '/restore', { method: 'POST' });
-            window.ListHelper.load();
-        } catch (e) {
-            alert(e.message);
-        }
-    },
-
     async deleteStudent(id) {
         if (!confirm('Bạn chắc chắn muốn khóa học sinh này?')) return;
         try {
@@ -207,16 +193,12 @@ const StudentManager = {
         }
     },
 
-    openSearchModal(autoQuery = '') {
+    openSearchModal() {
         document.getElementById('searchQuery').value = '';
         document.getElementById('searchError').classList.add('hidden');
         document.getElementById('searchResult').classList.add('hidden');
         document.getElementById('btnEnroll').classList.add('hidden');
         document.getElementById('searchStudentModal').classList.remove('hidden');
-        if (autoQuery) {
-            document.getElementById('searchQuery').value = autoQuery;
-            this.searchStudent();
-        }
     },
 
     closeSearchModal() {
@@ -275,3 +257,4 @@ const StudentManager = {
 };
 
 window.StudentManager = StudentManager;
+

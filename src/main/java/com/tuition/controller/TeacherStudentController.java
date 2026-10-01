@@ -63,6 +63,14 @@ public class TeacherStudentController {
         teacherService.softDeleteStudent(getCurrentUser(userDetails), id);
     }
 
+    @PostMapping("/{id}/restore")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void restoreStudent(
+            @PathVariable Long id,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        teacherService.restoreStudent(getCurrentUser(userDetails), id);
+    }
+
     @PutMapping("/{id}/reset-password")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void resetPassword(

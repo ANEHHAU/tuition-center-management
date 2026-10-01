@@ -36,6 +36,9 @@ public class GroupService {
     @Transactional
     @Auditable(action = "CREATE", entityType = "GROUP")
     public GroupResponse create(GroupRequest req, User currentUser) {
+        if (req.startDate() != null && req.endDate() != null && req.endDate().isBefore(req.startDate())) {
+            throw new BusinessException("Ngày kết thúc không được trước ngày bắt đầu");
+        }
         Course course = courseService.getCourseOrThrow(req.courseId());
 
         // Check quyền: course phải thuộc teacher hiện tại (hoặc currentUser là ADMIN)
@@ -70,6 +73,9 @@ public class GroupService {
     @Transactional
     @Auditable(action = "UPDATE", entityType = "GROUP")
     public GroupResponse update(Long id, GroupRequest req, User currentUser) {
+        if (req.startDate() != null && req.endDate() != null && req.endDate().isBefore(req.startDate())) {
+            throw new BusinessException("Ngày kết thúc không được trước ngày bắt đầu");
+        }
         Group group = getGroupOrThrow(id);
         checkGroupOwnership(group, currentUser);
 

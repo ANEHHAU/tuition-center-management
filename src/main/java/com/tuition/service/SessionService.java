@@ -176,6 +176,24 @@ public class SessionService {
                 .toList();
     }
 
+    @Transactional(readOnly = true)
+    public List<SessionResponse> listAll(User currentUser, LocalDate from, LocalDate to) {
+        if (currentUser.getRole() != Role.ADMIN) {
+            throw new BusinessException("Chỉ ADMIN mới được lấy tất cả buổi học");
+        }
+        List<Session> sessions;
+        if (from != null && to != null) {
+            sessions = sessionRepository.findAll().stream()
+                    .filter(s -> !s.getDate().isBefore(from) && !s.getDate().isAfter(to))
+                    .toList();
+        } else {
+            sessions = sessionRepository.findAll();
+        }
+        return sessions.stream()
+                .map(s -> SessionResponse.fromEntity(s, attendanceRepository.countBySessionId(s.getId())))
+                .toList();
+    }
+
     // ========= Helper =========
 
     public Session getSessionOrThrow(Long id) {

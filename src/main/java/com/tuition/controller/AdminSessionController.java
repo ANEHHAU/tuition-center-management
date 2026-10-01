@@ -39,7 +39,7 @@ public class AdminSessionController {
             @AuthenticationPrincipal UserDetails userDetails) {
         User currentUser = getCurrentUser(userDetails);
         if (groupId == null) {
-            return java.util.List.of();
+            return sessionService.listAll(currentUser, from, to);
         }
         if (from != null && to != null) {
             return sessionService.listByRange(groupId, from, to, currentUser);

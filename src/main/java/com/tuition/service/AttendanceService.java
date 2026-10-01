@@ -137,6 +137,11 @@ public class AttendanceService {
             ));
         }
 
+        // Sau khi điểm danh xong, tự chuyển session SCHEDULED -> COMPLETED
+        if (session.getStatus() == SessionStatus.SCHEDULED) {
+            session.setStatus(SessionStatus.COMPLETED);
+        }
+
         return new AttendanceResponse(sessionId, responseItems);
     }
 

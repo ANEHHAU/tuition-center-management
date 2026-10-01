@@ -4,17 +4,36 @@ const AttendanceManager = {
     init() {
         this.loadTodaySessions();
         
-        // Cố gắng tự chọn session từ URL parameter nếu có
+        // Tự chọn session từ URL parameter nếu có
         const params = new URLSearchParams(window.location.search);
         if (params.has('sessionId')) {
             const sid = params.get('sessionId');
-            setTimeout(() => {
-                const select = document.getElementById('sessionSelect');
-                if (select) {
-                    select.value = sid;
-                    this.loadAttendance(sid);
+            // Load attendance ngay, đồng thời thêm session vào dropdown nếu chưa có
+            this.loadSessionIntoDropdown(sid);
+            this.loadAttendance(sid);
+        }
+    },
+
+    async loadSessionIntoDropdown(sessionId) {
+        try {
+            const s = await window.apiFetch('/api/teacher/sessions/' + sessionId);
+            const select = document.getElementById('sessionSelect');
+            if (select) {
+                // Kiểm tra nếu option chưa có thì thêm
+                let exists = false;
+                for (let opt of select.options) {
+                    if (opt.value == sessionId) { exists = true; break; }
                 }
-            }, 500);
+                if (!exists) {
+                    const opt = document.createElement('option');
+                    opt.value = s.id;
+                    opt.textContent = `${s.date} ${s.startTime} - ${s.groupName} [${s.status}]`;
+                    select.appendChild(opt);
+                }
+                select.value = sessionId;
+            }
+        } catch (e) {
+            console.error('Không tải được thông tin buổi học', e);
         }
     },
 
