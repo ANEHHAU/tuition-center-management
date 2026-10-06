@@ -57,4 +57,24 @@ public class AdminGroupController {
     public void deleteGroup(@PathVariable Long id, @AuthenticationPrincipal UserDetails userDetails) {
         groupService.delete(id, getCurrentUser(userDetails));
     }
+
+    // ========= Public Link (giống teacher) =========
+
+    @PostMapping("/{groupId}/public-link/regenerate")
+    public java.util.Map<String, String> regeneratePublicLink(@PathVariable Long groupId, @AuthenticationPrincipal UserDetails userDetails) {
+        String token = groupService.regeneratePublicLink(groupId, getCurrentUser(userDetails));
+        return java.util.Map.of("url", "/public/schedule/" + token, "token", token);
+    }
+
+    @PutMapping("/{groupId}/public-link/revoke")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void revokePublicLink(@PathVariable Long groupId, @AuthenticationPrincipal UserDetails userDetails) {
+        groupService.revokePublicLink(groupId, getCurrentUser(userDetails));
+    }
+
+    @GetMapping("/{groupId}/public-link")
+    public java.util.Map<String, String> getPublicLink(@PathVariable Long groupId, @AuthenticationPrincipal UserDetails userDetails) {
+        String url = groupService.getPublicLink(groupId, getCurrentUser(userDetails));
+        return java.util.Map.of("url", url);
+    }
 }

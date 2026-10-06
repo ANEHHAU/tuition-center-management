@@ -213,6 +213,40 @@ public class TeacherService {
         enrollmentRepository.save(enrollment);
     }
 
+    @Transactional
+    public void unenrollStudentFromGroup(User teacher, Long studentId, Long groupId) {
+        Group group = groupRepository.findById(groupId)
+                .orElseThrow(() -> new BusinessException("Không tìm thấy nhóm"));
+        if (!group.getTeacher().getId().equals(teacher.getId())) {
+            throw new BusinessException("Bạn không có quyền xóa học sinh khỏi nhóm này");
+        }
+        com.tuition.entity.Enrollment enrollment = enrollmentRepository.findByStudentIdAndGroupIdAndStatus(
+                studentId, groupId, com.tuition.entity.EnrollmentStatus.ACTIVE)
+                .orElseThrow(() -> new BusinessException("Học sinh không nằm trong nhóm này"));
+        enrollment.setStatus(com.tuition.entity.EnrollmentStatus.LEFT);
+        enrollmentRepository.save(enrollment);
+    }
+
+    @Transactional(readOnly = true)
+    public java.util.List<java.util.Map<String, Object>> getStudentEnrollments(User teacher, Long studentId) {
+        getStudentOfTeacher(teacher, studentId);
+        List<Group> teacherGroups = groupRepository.findByTeacherId(teacher.getId());
+        java.util.List<java.util.Map<String, Object>> result = new java.util.ArrayList<>();
+        for (Group group : teacherGroups) {
+            enrollmentRepository.findByStudentIdAndGroupIdAndStatus(
+                    studentId, group.getId(), com.tuition.entity.EnrollmentStatus.ACTIVE
+            ).ifPresent(e -> {
+                java.util.Map<String, Object> map = new java.util.LinkedHashMap<>();
+                map.put("groupId", group.getId());
+                map.put("groupName", group.getName());
+                map.put("courseId", group.getCourse().getId());
+                map.put("courseName", group.getCourse().getName());
+                result.add(map);
+            });
+        }
+        return result;
+    }
+
     private User getStudentOfTeacher(User teacher, Long studentId) {
         User student = userRepository.findById(studentId)
                 .orElseThrow(() -> new BusinessException("Không tìm thấy học sinh"));

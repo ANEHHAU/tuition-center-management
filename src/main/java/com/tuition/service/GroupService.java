@@ -232,7 +232,7 @@ public class GroupService {
     public String getPublicLink(Long groupId, User currentUser) {
         Group group = getGroupOrThrow(groupId);
         checkGroupOwnership(group, currentUser);
-        if (group.getPublicToken() == null) {
+        if (group.getPublicToken() == null || !Boolean.TRUE.equals(group.getTokenEnabled())) {
             throw new BusinessException("Nhóm chưa có public link. Hãy tạo mới.");
         }
         return "/public/schedule/" + group.getPublicToken();

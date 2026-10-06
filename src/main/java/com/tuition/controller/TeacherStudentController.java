@@ -101,4 +101,20 @@ public class TeacherStudentController {
             @AuthenticationPrincipal UserDetails userDetails) {
         teacherService.enrollStudentToGroup(getCurrentUser(userDetails), studentId, groupId);
     }
+
+    @DeleteMapping("/enroll/{studentId}/group/{groupId}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void unenrollStudentFromGroup(
+            @PathVariable Long studentId,
+            @PathVariable Long groupId,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        teacherService.unenrollStudentFromGroup(getCurrentUser(userDetails), studentId, groupId);
+    }
+
+    @GetMapping("/{id}/enrollments")
+    public java.util.List<java.util.Map<String, Object>> getStudentEnrollments(
+            @PathVariable Long id,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        return teacherService.getStudentEnrollments(getCurrentUser(userDetails), id);
+    }
 }

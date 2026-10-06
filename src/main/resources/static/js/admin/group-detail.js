@@ -16,10 +16,11 @@ async function loadGroupDetail(groupId) {
         document.getElementById("infoStatusCount").textContent = `${g.status || '-'} / ${g.studentCount != null ? g.studentCount : 0} HS`;
         document.getElementById("editGroupBtn").href = `/admin/group-form?id=${groupId}`;
         
-        if (g.publicLinkToken) {
-            document.getElementById("publicLinkUrl").value = `${window.location.origin}/public/enroll/${g.publicLinkToken}`;
+        if (g.publicToken && g.tokenEnabled) {
+            document.getElementById("publicLinkUrl").value = `${window.location.origin}/public/schedule/${g.publicToken}`;
         } else {
-            document.getElementById("publicLinkUrl").value = "Chưa có public link";
+            document.getElementById("publicLinkUrl").value = "";
+            document.getElementById("publicLinkUrl").placeholder = "Chưa có link (nhấn Tạo/Đổi link)";
         }
     } catch (e) { console.error("Lỗi tải chi tiết nhóm:", e); }
 }

@@ -359,7 +359,11 @@
         revokeLink() {
             if (!confirm('Thu hồi link công khai?')) return;
             window.apiFetch('/api/teacher/groups/' + this.groupId + '/public-link/revoke', { method: 'PUT' })
-                .then(() => { document.getElementById('publicLinkUrl').value = ''; alert('Đã thu hồi!'); })
+                .then(() => {
+                    document.getElementById('publicLinkUrl').value = '';
+                    document.getElementById('publicLinkUrl').placeholder = 'Chưa có link (nhấn Tạo/Đổi)';
+                    alert('Đã thu hồi link thành công!');
+                })
                 .catch(e => alert(e.message));
         },
 
